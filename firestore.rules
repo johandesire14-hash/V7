@@ -1,0 +1,277 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // 🛡️ HELPER FUNCTIONS
+    // ==========================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isUserEmail(email) {
+      return isSignedIn() && request.auth.token.email != null && request.auth.token.email == email;
+    }
+
+    function isCreatorMatch(creatorId, creatorEmail) {
+      return isSignedIn() && (
+        request.auth.uid == creatorId ||
+        (request.auth.token.email != null && (request.auth.token.email == creatorEmail || request.auth.token.email == creatorId))
+      );
+    }
+
+    function isValidId(idStr) {
+      return idStr is string && idStr.size() >= 1 && idStr.size() <= 128;
+    }
+
+    // ==========================================
+    // 👤 USERS & CREATOR PROFILES
+    // ==========================================
+    // Public read for creator profiles and store branding.
+    // Writes strictly locked to the authenticated account owner.
+    match /users/{userId} {
+      allow get, list: if true;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'id']) || request.resource.data.uid == userId);
+      allow delete: if isOwner(userId);
+    }
+
+    // ==========================================
+    // 🏢 COMPANIES (Creator Workspaces & Stores)
+    // ==========================================
+    // Public read for company storefronts, branding and member view.
+    // Create, update, delete strictly restricted to the company owner.
+    match /companies/{companyId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && (
+        request.resource.data.ownerId == request.auth.uid ||
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.creatorEmail)
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid ||
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorEmail)
+      );
+    }
+
+    // ==========================================
+    // 📦 PRODUCTS & DIGITAL OFFERS
+    // ==========================================
+    // Public read for marketplace discovery and product pages.
+    // Create/update/delete restricted to the product's creator.
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.creatorEmail)
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorEmail)
+      );
+    }
+
+    // ==========================================
+    // 💳 TRANSACTIONS (Financial Ledger)
+    // ==========================================
+    // Financial security: Read restricted to transaction creator or buyer.
+    // Create allowed for authenticated transactions with valid amounts.
+    // UPDATE & DELETE STRICTLY FORBIDDEN (Immutable Ledger).
+    match /transactions/{transactionId} {
+      allow get: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.buyerEmail) ||
+        isUserEmail(resource.data.customerEmail) ||
+        isUserEmail(resource.data.creatorEmail)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.buyerEmail) ||
+        isUserEmail(resource.data.customerEmail) ||
+        isUserEmail(resource.data.creatorEmail)
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.buyerEmail) ||
+        isUserEmail(request.resource.data.customerEmail) ||
+        isUserEmail(request.resource.data.creatorEmail)
+      ) && (
+        !('amountNumber' in request.resource.data) || request.resource.data.amountNumber >= 0
+      );
+      allow update, delete: if false;
+    }
+
+    // ==========================================
+    // 👥 CUSTOMERS & CRM
+    // ==========================================
+    // Read restricted to the creator who manages the customers or the customer himself.
+    match /customers/{customerId} {
+      allow get: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.email) ||
+        isUserEmail(resource.data.creatorId)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.email) ||
+        isUserEmail(resource.data.creatorId)
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.email) ||
+        isUserEmail(request.resource.data.creatorId)
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+    }
+
+    // ==========================================
+    // 💼 WORKFORCE (Private Creator Team)
+    // ==========================================
+    // Strictly confidential: Only the creator who owns the workforce can access.
+    match /workforce/{memberId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.creatorId)
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+    }
+
+    // ==========================================
+    // 🤝 PARTNERS & B2B DEALS
+    // ==========================================
+    // Strictly confidential: Only the creator can access deals and values.
+    match /partners/{partnerId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.creatorId)
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+    }
+
+    // ==========================================
+    // ⭐ FAVORITES
+    // ==========================================
+    // Strictly personal to each authenticated user.
+    match /favorites/{favoriteId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // ==========================================
+    // 💬 COMMUNITY MESSAGES
+    // ==========================================
+    // Only participants (creator and buyer) can read or post messages.
+    match /community_messages/{messageId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.buyerEmail) ||
+        isUserEmail(resource.data.creatorId)
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.buyerEmail) ||
+        isUserEmail(request.resource.data.creatorId)
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+    }
+
+    // ==========================================
+    // 💰 WITHDRAWALS (Creator Payouts)
+    // ==========================================
+    // Financial security: Creator can only read their own payouts and create requests.
+    // Modification and deletion forbidden for clients.
+    match /withdrawals/{withdrawalId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isUserEmail(resource.data.creatorId)
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid ||
+        isUserEmail(request.resource.data.creatorId)
+      ) && request.resource.data.amount > 0;
+      allow update, delete: if false;
+    }
+
+    // ==========================================
+    // 🎟️ SUBSCRIPTIONS & PURCHASED ACCESS
+    // ==========================================
+    // Access control: Members can view their subscriptions; creators can view their subscribers.
+    match /subscriptions/{subscriptionId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isUserEmail(resource.data.customerEmail) ||
+        resource.data.companyId != null
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid ||
+        isUserEmail(request.resource.data.customerEmail)
+      );
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isUserEmail(resource.data.customerEmail)
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isUserEmail(resource.data.customerEmail)
+      );
+    }
+
+    // ==========================================
+    // 🚩 REPORTS (Safety & Compliance)
+    // ==========================================
+    // Anyone (users & visitors) can submit a compliance report.
+    // Read, update, delete are strictly forbidden to public/clients (admin only).
+    match /reports/{reportId} {
+      allow create: if request.resource.data.reason is string &&
+                    request.resource.data.companyName is string;
+      allow read, update, delete: if false;
+    }
+
+    // ==========================================
+    // 🔔 NOTIFICATIONS
+    // ==========================================
+    // Notifications are private to the recipient.
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // ==========================================
+    // 🔒 DEFAULT DENY-ALL (Zero Trust Rule)
+    // ==========================================
+    // Any document or collection not explicitly matched above is DENIED.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

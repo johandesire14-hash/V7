@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --mansa-green: #3DDC84;
+    --mansa-green-hover: #2FB86A;
+    --mansa-green-light: #EBFBF2;
+    --mansa-bg: #000000;
+    --mansa-surface: #0E0F12;
+    --mansa-border: rgba(255, 255, 255, 0.08);
+  }
+
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #000000;
+    color: #F1F1F1;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading, .title-grotesk {
+    font-family: "Hanken Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.025em;
+  }
+}
+
+.font-hanken {
+  font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.font-inter {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* The live Pulse feed moves only when a new transaction arrives and is not manually scrollable. */
+.pulse-feed-track {
+  transform: translateY(0);
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-feed-track {
+    transition: none;
+  }
+}
+
+/* Mansa Signature Green Button */
+.mansa-btn-green,
+.mansa-btn-orange,
+.whop-btn-primary {
+  background-color: #3DDC84;
+  color: #000000;
+  font-weight: 700;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(61, 220, 132, 0.25);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mansa-btn-green:hover,
+.mansa-btn-orange:hover,
+.whop-btn-primary:hover {
+  background-color: #2FB86A;
+  box-shadow: 0 4px 12px 0 rgba(61, 220, 132, 0.3);
+  transform: translateY(-1px);
+  color: #000000;
+}
+
+.mansa-btn-green:active,
+.mansa-btn-orange:active,
+.whop-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgba(61, 220, 132, 0.2);
+}
+
+.mansa-btn-dark,
+.whop-btn-secondary {
+  background-color: #121318;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mansa-btn-dark:hover,
+.whop-btn-secondary:hover {
+  background-color: #1A1C24;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.mansa-btn-dark:active,
+.whop-btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #232530;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #323544;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

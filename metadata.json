@@ -1,0 +1,6 @@
+{
+  "name": "Mansa - Digital Business & Community Platform for Africa",
+  "description": "Mansa - Plateforme tout-en-un pour les créateurs de contenu en Afrique et dans le monde : vente de cours, ebooks, adhésions VIP Telegram & Discord, paiements Mobile Money (Wave, Orange, MTN) et analytics en temps réel.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
