@@ -853,8 +853,9 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     if (!selectedCreatorApp) return;
     if (selectedCreatorApp === "courses") {
       if (!creatorCourseName.trim()) return;
+      const courseId = editingCreatorCourseId && editingCreatorCourseId !== "new" ? editingCreatorCourseId : `course-${Date.now()}`;
       const course = {
-        id: editingCreatorCourseId && editingCreatorCourseId !== "new" ? editingCreatorCourseId : `course-${Date.now()}`,
+        id: courseId,
         productIds: linkedCreatorProductIds,
         title: creatorCourseName.trim(),
         description: creatorCourseDescription.trim(),
@@ -869,10 +870,84 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
       const nextCourses = [...creatorCourses.filter((item) => item.id !== course.id), course];
       setCreatorCourses(nextCourses);
       localStorage.setItem(`mansa_creator_courses_${companyId}`, JSON.stringify(nextCourses));
+
+      // Synchroniser immédiatement les cours & modules avec les offres liées de l'entreprise
+      const updatedOffers = enterpriseOffers.map((off) => {
+        if (linkedCreatorProductIds.includes(off.id)) {
+          const existingCourses = off.courses || [];
+          const filteredCourses = existingCourses.filter((c: any) => c.id !== course.id);
+          const newCourseModules = course.chapters.map((ch, idx) => ({
+            id: `mod-${idx + 1}`,
+            title: ch,
+            duration: "25 min",
+          }));
+          return {
+            ...off,
+            courses: [...filteredCourses, course],
+            courseModules: newCourseModules,
+            includedApps: Array.from(new Set([...(off.includedApps || []), "Cours & formations"])),
+          };
+        }
+        return off;
+      });
+      try {
+        localStorage.setItem(`mansa_creator_offers_${companyId}`, JSON.stringify(updatedOffers));
+        setProductsRefreshTrigger((prev) => prev + 1);
+      } catch {}
+
       setEditingCreatorCourseId(null);
       setCourseCreationStep("library");
+      setCreatorAppStep("closed");
+      setSelectedCreatorApp(null);
       return;
     }
+
+    if (selectedCreatorApp === "files") {
+      const fileName = creatorFileName.trim() || "Fichier_Ressource.pdf";
+      const newFile = {
+        id: `file-${Date.now()}`,
+        name: fileName,
+        size: "12.4 MB",
+        type: "application/pdf",
+        isFreePreview: false,
+      };
+      const updatedOffers = enterpriseOffers.map((off) => {
+        if (linkedCreatorProductIds.includes(off.id)) {
+          const existingFiles = (off as any).digitalFiles || [];
+          const existingEbooks = off.ebooks || [];
+          return {
+            ...off,
+            digitalFiles: [...existingFiles, newFile],
+            ebooks: [...existingEbooks, { id: newFile.id, title: newFile.name, size: newFile.size }],
+            includedApps: Array.from(new Set([...(off.includedApps || []), "Fichiers"])),
+          };
+        }
+        return off;
+      });
+      try {
+        localStorage.setItem(`mansa_creator_offers_${companyId}`, JSON.stringify(updatedOffers));
+        setProductsRefreshTrigger((prev) => prev + 1);
+      } catch {}
+
+      const storageKey = `mansa_creator_apps_${companyId}`;
+      const currentApps = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const nextApp = {
+        appId: selectedCreatorApp,
+        productIds: linkedCreatorProductIds,
+        title: fileName,
+        description: creatorCourseDescription,
+        chapters: creatorChapterNames,
+        updatedAt: new Date().toISOString(),
+      };
+      const withoutCurrent = Array.isArray(currentApps)
+        ? currentApps.filter((app: { appId?: string }) => app.appId !== selectedCreatorApp)
+        : [];
+      localStorage.setItem(storageKey, JSON.stringify([...withoutCurrent, nextApp]));
+      setCreatorAppStep("closed");
+      setSelectedCreatorApp(null);
+      return;
+    }
+
     const storageKey = `mansa_creator_apps_${companyId}`;
     const currentApps = JSON.parse(localStorage.getItem(storageKey) || "[]");
     const nextApp = {
@@ -933,125 +1008,6 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     };
   };
 
-  // Construction STRICTE des fonctionnalités réelles de l'entreprise (UNIQUEMENT ce qui existe dans ses offres réelles)
-  const ecosystemFeatures = React.useMemo(() => {
-    const items: Array<{
-      id: string;
-      title: string;
-      description: string;
-      icon: React.ReactNode;
-      isAccessible: boolean;
-      featureKey: string;
-      productName: string;
-      matchingOffer?: CreatorPlatformOffer;
-      authorizedCount?: number;
-    }> = [];
-
-    // 3. E-book (uniquement si configuré pour l'entreprise)
-    const ebOffer = enterpriseOffers.find((o) =>
-      Boolean(
-        (o.ebooks && o.ebooks.length > 0) ||
-        o.type === "ebook" ||
-        o.includedApps?.some((a) => ["ebook", "guide", "pdf", "livre"].some((k) => a.toLowerCase().includes(k))) ||
-        o.title.toLowerCase().includes("ebook")
-      )
-    );
-    if (ebOffer || (currentSub.ebooks && currentSub.ebooks.length > 0)) {
-      items.push({
-        id: "ebook",
-        title: "E-book",
-        description: "Guides stratégiques téléchargeables, règles méthodologiques et fiches mémo.",
-        icon: <BookOpen className="size-4 text-emerald-400" />,
-        isAccessible: isEbookUnlocked,
-        featureKey: "ebook",
-        productName: authorizedEbooks[0]?.title || ebOffer?.title || "Pack E-books & Guides",
-        matchingOffer: ebOffer || getOfferForFeature("ebook"),
-        authorizedCount: authorizedEbooks.length,
-      });
-    }
-
-    // 4. Formation (uniquement si configurée pour l'entreprise)
-    const coOffer = enterpriseOffers.find((o) =>
-      Boolean(
-        (o.courses && o.courses.length > 0) ||
-        o.type === "course" ||
-        o.includedApps?.some((a) => ["cours", "formation", "masterclass", "course"].some((k) => a.toLowerCase().includes(k))) ||
-        o.title.toLowerCase().includes("formation")
-      )
-    );
-    if (coOffer || (currentSub.courses && currentSub.courses.length > 0)) {
-      items.push({
-        id: "course",
-        title: "Formation",
-        description: "Cursus vidéo complets pas à pas, replays exclusifs et études de cas pratiques.",
-        icon: <GraduationCap className="size-4 text-indigo-400" />,
-        isAccessible: isCourseUnlocked,
-        featureKey: "course",
-        productName: authorizedCourses[0]?.title || coOffer?.title || "Formation Vidéo",
-        matchingOffer: coOffer || getOfferForFeature("course"),
-        authorizedCount: authorizedCourses.length,
-      });
-    }
-
-    return items;
-  }, [
-    enterpriseOffers,
-    currentSub,
-    isTelegramUnlocked,
-    isDiscordUnlocked,
-    isEbookUnlocked,
-    isCourseUnlocked,
-    authorizedTelegramChannels,
-    authorizedDiscordChannels,
-    authorizedEbooks,
-    authorizedCourses,
-  ]);
-
-  const visibleEcosystemFeatures = React.useMemo(() => {
-    if (!isCompanyOwner || previewMode === "admin" || previewMode === "public") {
-      return ecosystemFeatures;
-    }
-    if (previewMode === "hidden") return [];
-    if (!selectedPreviewOffer) return ecosystemFeatures;
-
-    return ecosystemFeatures.filter((feature) => {
-      if (feature.matchingOffer?.id === selectedPreviewOffer.id) return true;
-      if (selectedPreviewOffer.includedApps?.some((app) => app.toLowerCase().includes(feature.featureKey))) return true;
-      if (feature.featureKey === "ebook" && (selectedPreviewOffer.ebooks?.length || 0) > 0) return true;
-      if (feature.featureKey === "course" && (selectedPreviewOffer.courses?.length || 0) > 0) return true;
-      if (feature.featureKey === "resource" && (selectedPreviewOffer.customResources?.length || 0) > 0) return true;
-      return false;
-    });
-  }, [ecosystemFeatures, isCompanyOwner, previewMode, selectedPreviewOffer]);
-
-  const handleEcosystemFeatureClick = (
-    feat: (typeof ecosystemFeatures)[0],
-    isMobile: boolean = false
-  ) => {
-    if (isMobile) setIsMobileSidebarOpen(false);
-
-    if (feat.isAccessible) {
-      if (feat.id === "telegram") {
-        setActiveTab("telegram");
-        setTelegramFlowStep("channels_list");
-      } else if (feat.id === "discord") {
-        setActiveTab("discord");
-        setDiscordFlowStep("channels_list");
-      } else if (feat.id === "ebook") {
-        setIsEbookModalOpen(true);
-      } else if (feat.id === "course") {
-        setIsCourseModalOpen(true);
-      }
-    } else {
-      // Fonctionnalité non achetée : 🔒 Verrouillé
-      // Redirection immédiate vers la page produit / offre correspondante avec ouverture du checkout
-      setActiveTab("accueil");
-      setCompanyTab("produits");
-      const offer = feat.matchingOffer || getOfferForFeature(feat.featureKey);
-      setCheckoutModalOffer(offer);
-    }
-  };
-  
   // Telegram multi-step access architecture
   // Step 1: Channels list with Top Header & Central Content Card
   // Step 2: Claim access & QR Code
@@ -1743,71 +1699,6 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           )}
         </nav>
 
-        {/* Section inférieure : Produits et fonctionnalités réels de l’entreprise */}
-        {visibleEcosystemFeatures.length > 0 && (
-          <div className="pt-3 border-t border-white/[0.08] space-y-1.5">
-            <div className="px-3 pb-1 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                Produits & Fonctionnalités
-              </span>
-              <span className="text-[10px] font-mono text-zinc-500">
-                {visibleEcosystemFeatures.filter((f) => f.isAccessible).length}/
-                {visibleEcosystemFeatures.length}
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              {visibleEcosystemFeatures.map((item) => {
-                const isAccessible = item.isAccessible;
-                const isCurrentActive =
-                  (item.id === "telegram" && activeTab === "telegram") ||
-                  (item.id === "discord" && activeTab === "discord");
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleEcosystemFeatureClick(item, isMobile)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] text-left group ${
-                      isCurrentActive
-                        ? "bg-[#181a20] text-white font-semibold border border-white/10 shadow-sm"
-                        : isAccessible
-                        ? "text-zinc-300 hover:bg-white/5 hover:text-white"
-                        : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
-                    }`}
-                    title={
-                      isAccessible
-                        ? `Accéder à ${item.title}`
-                        : `Débloquer ${item.title} (Accéder à l'offre)`
-                    }
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="size-4 shrink-0 flex items-center justify-center">
-                        {item.icon}
-                      </div>
-                      <span className="truncate text-xs font-medium group-hover:text-white">
-                        {item.title}
-                      </span>
-                    </div>
-
-                    <div className="shrink-0 ml-2">
-                      {isAccessible ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
-                          <span>🔓 Accessible</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
-                          <Lock className="size-2.5 shrink-0" />
-                          <span>Verrouillé</span>
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {isMobile && onBackToPersonal && (
           <div className="pt-2 border-t border-white/5">
             <button
@@ -1859,10 +1750,28 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             <div className="relative group flex items-center justify-center w-full px-2">
               <button
                 onClick={onBackToPersonal}
-                className="size-11 rounded-2xl bg-[#16171b] hover:bg-white/10 hover:text-white text-zinc-400 border border-white/10 flex items-center justify-center transition-all cursor-pointer"
+                className="size-11 rounded-2xl bg-[#16171b] hover:bg-white/10 hover:text-white text-zinc-400 border border-white/10 flex items-center justify-center transition-all cursor-pointer overflow-hidden"
                 title="Espace Personnel"
               >
-                <User className="size-5" />
+                {creatorCompanies[0]?.companyLogo ? (
+                  <img
+                    src={creatorCompanies[0].companyLogo}
+                    alt={creatorCompanies[0].name}
+                    className="size-full object-cover"
+                  />
+                ) : creatorCompanies[0] ? (
+                  <div
+                    className={`size-full bg-gradient-to-br ${
+                      creatorCompanies[0].colorGradient || "from-emerald-950 via-slate-900 to-black"
+                    } flex items-center justify-center text-[11px] font-black text-white font-mono`}
+                  >
+                    <span>{creatorCompanies[0].logoInitials || creatorCompanies[0].name?.substring(0, 2).toUpperCase() || "CF"}</span>
+                  </div>
+                ) : (
+                  <div className="size-full bg-gradient-to-br from-emerald-950 to-zinc-900 flex items-center justify-center text-[10px] font-bold text-emerald-400 font-mono">
+                    <span>AF</span>
+                  </div>
+                )}
               </button>
               <div className="absolute left-[72px] z-50 px-2.5 py-1 rounded-lg bg-[#181a22] text-xs font-semibold text-white border border-white/10 shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
                 Espace Personnel
@@ -3378,6 +3287,33 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           isOpen={!!checkoutModalOffer}
           offer={checkoutModalOffer}
           onClose={() => setCheckoutModalOffer(null)}
+          isCompanyOwner={isCompanyOwner}
+          isAlreadyPurchased={
+            unlockedProductIds.includes(checkoutModalOffer.id) ||
+            (currentSub?.purchasedOfferIds || []).includes(checkoutModalOffer.id) ||
+            (currentSub?.unlockedProductIds || []).includes(checkoutModalOffer.id) ||
+            currentSub?.productId === checkoutModalOffer.id
+          }
+          onAccessContent={(off) => {
+            const isOfferTg = off.includedApps?.includes("Telegram") || (off.telegramChannels && off.telegramChannels.length > 0);
+            const isOfferDc = off.includedApps?.includes("Discord") || (off.discordChannels && off.discordChannels.length > 0);
+            const isOfferEb = off.type === "ebook" || (off.ebooks && off.ebooks.length > 0) || Boolean((off as any).digitalFiles?.length);
+            const isOfferCo = off.type === "course" || (off.courses && off.courses.length > 0) || Boolean((off as any).courseModules?.length);
+
+            if (isOfferTg) {
+              setActiveTab("telegram");
+              setTelegramFlowStep("channels_list");
+            } else if (isOfferDc) {
+              setActiveTab("discord");
+              setDiscordFlowStep("channels_list");
+            } else if (isOfferEb) {
+              setIsEbookModalOpen(true);
+            } else if (isOfferCo) {
+              setIsCourseModalOpen(true);
+            } else {
+              setActiveTab("accueil");
+            }
+          }}
           onPaymentSuccess={(newSub) => {
             // Update includedApps and unlockedProductIds for current enterprise
             const updatedApps = Array.from(new Set([...currentIncludedApps, ...(newSub.includedApps || [])]));
@@ -3724,7 +3660,29 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                         </div>
                       </>
                     ) : (
-                      <label className="block space-y-1.5"><span className="text-xs font-semibold text-zinc-300">Contenu du fichier</span><input type="file" className="block w-full rounded-xl border border-dashed border-white/20 bg-[#0c0d0e] px-3 py-5 text-xs text-zinc-400 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white" /></label>
+                      <div className="space-y-2">
+                        <label className="block space-y-1.5">
+                          <span className="text-xs font-semibold text-zinc-300">Contenu du fichier</span>
+                          <input
+                            type="file"
+                            onChange={(event) => {
+                              const f = event.target.files?.[0];
+                              if (f) {
+                                if (!creatorFileName.trim()) {
+                                  setCreatorFileName(f.name);
+                                }
+                              }
+                            }}
+                            className="block w-full rounded-xl border border-dashed border-white/20 bg-[#0c0d0e] px-3 py-5 text-xs text-zinc-400 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white cursor-pointer"
+                          />
+                        </label>
+                        {creatorFileName && (
+                          <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs text-emerald-400 flex items-center justify-between">
+                            <span className="truncate">✓ Fichier associé : {creatorFileName}</span>
+                            <span className="text-[10px] font-mono text-zinc-400 shrink-0">Prêt</span>
+                          </div>
+                        )}
+                      </div>
                     )}
                     </>
                     ) : null}

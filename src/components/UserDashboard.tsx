@@ -1166,7 +1166,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           <div className="space-y-4">
             {/* Top Workspace Icons Switcher: Bonhomme Gris (Personnel) + Entreprises du créateur UNIQUEMENT */}
             <div className="flex items-center gap-1.5 pb-2 overflow-x-auto no-scrollbar">
-              {/* Personal Workspace button */}
+              {/* Personal Workspace button: Affiche la photo de profil / identité visuelle de l'entreprise */}
               <button
                 onClick={() => {
                   setActiveWorkspaceId("personnel");
@@ -1174,14 +1174,32 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     setActiveNav("accueil");
                   }
                 }}
-                className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl overflow-hidden transition-all cursor-pointer ${
                   activeWorkspaceId === "personnel"
                     ? "bg-[#16171b] border-2 border-white text-white shadow-sm ring-1 ring-[#0055ff]"
                     : "bg-[#16171b] border border-white/10 text-zinc-400 hover:text-white"
                 }`}
                 title={lang === "fr" ? "Espace Personnel" : "Personal Workspace"}
               >
-                <User className="size-4" />
+                {activeCompany?.companyLogo || companies[0]?.companyLogo ? (
+                  <img
+                    src={activeCompany?.companyLogo || companies[0].companyLogo}
+                    alt={activeCompany?.name || companies[0]?.name || "Entreprise"}
+                    className="size-full object-cover"
+                  />
+                ) : (activeCompany || companies[0]) ? (
+                  <div
+                    className={`size-full bg-gradient-to-br ${
+                      (activeCompany || companies[0]).colorGradient || "from-emerald-950 via-slate-900 to-black"
+                    } flex items-center justify-center text-[10px] font-black text-white font-mono`}
+                  >
+                    <span>{(activeCompany || companies[0]).logoInitials || (activeCompany || companies[0]).name.substring(0, 2).toUpperCase() || "CF"}</span>
+                  </div>
+                ) : (
+                  <div className="size-full bg-gradient-to-br from-emerald-950 to-zinc-900 flex items-center justify-center text-[10px] font-bold text-emerald-400 font-mono">
+                    <span>AF</span>
+                  </div>
+                )}
               </button>
 
               <div className="h-5 w-px bg-white/10 shrink-0 mx-0.5" />
@@ -1205,13 +1223,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     }`}
                     title={`Mon Entreprise : ${comp.name}`}
                   >
-                    <div
-                      className={`size-full bg-gradient-to-br ${
-                        comp.colorGradient || "from-indigo-900 via-purple-900 to-black"
-                      } flex items-center justify-center text-[10px] font-black text-white font-mono`}
-                    >
-                      <span>{comp.logoInitials || "EN"}</span>
-                    </div>
+                    {comp.companyLogo ? (
+                      <img
+                        src={comp.companyLogo}
+                        alt={comp.name}
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={`size-full bg-gradient-to-br ${
+                          comp.colorGradient || "from-indigo-900 via-purple-900 to-black"
+                        } flex items-center justify-center text-[10px] font-black text-white font-mono`}
+                      >
+                        <span>{comp.logoInitials || comp.name.substring(0, 2).toUpperCase() || "EN"}</span>
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -1549,14 +1575,32 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       setActiveWorkspaceId("personnel");
                       setIsMobileSidebarOpen(false);
                     }}
-                    className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                    className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl overflow-hidden transition-all cursor-pointer ${
                       activeWorkspaceId === "personnel"
                         ? "bg-[#16171b] border-2 border-white text-white shadow-sm ring-1 ring-[#0055ff]"
                         : "bg-[#16171b] border border-white/10 text-zinc-400 hover:text-white"
                     }`}
                     title={lang === "fr" ? "Espace Personnel" : "Personal Workspace"}
                   >
-                    <User className="size-4" />
+                    {activeCompany?.companyLogo || companies[0]?.companyLogo ? (
+                      <img
+                        src={activeCompany?.companyLogo || companies[0].companyLogo}
+                        alt={activeCompany?.name || companies[0]?.name || "Entreprise"}
+                        className="size-full object-cover"
+                      />
+                    ) : (activeCompany || companies[0]) ? (
+                      <div
+                        className={`size-full bg-gradient-to-br ${
+                          (activeCompany || companies[0]).colorGradient || "from-emerald-950 via-slate-900 to-black"
+                        } flex items-center justify-center text-[10px] font-black text-white font-mono`}
+                      >
+                        <span>{(activeCompany || companies[0]).logoInitials || (activeCompany || companies[0]).name.substring(0, 2).toUpperCase() || "CF"}</span>
+                      </div>
+                    ) : (
+                      <div className="size-full bg-gradient-to-br from-emerald-950 to-zinc-900 flex items-center justify-center text-[10px] font-bold text-emerald-400 font-mono">
+                        <span>AF</span>
+                      </div>
+                    )}
                   </button>
 
                   <div className="h-5 w-px bg-white/10 shrink-0 mx-0.5" />
@@ -1581,13 +1625,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                         }`}
                         title={`Mon Entreprise : ${comp.name}`}
                       >
-                        <div
-                          className={`size-full bg-gradient-to-br ${
-                            comp.colorGradient || "from-indigo-900 via-purple-900 to-black"
-                          } flex items-center justify-center text-[10px] font-black text-white font-mono`}
-                        >
-                          <span>{comp.logoInitials || "EN"}</span>
-                        </div>
+                        {comp.companyLogo ? (
+                          <img
+                            src={comp.companyLogo}
+                            alt={comp.name}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className={`size-full bg-gradient-to-br ${
+                              comp.colorGradient || "from-indigo-900 via-purple-900 to-black"
+                            } flex items-center justify-center text-[10px] font-black text-white font-mono`}
+                          >
+                            <span>{comp.logoInitials || comp.name.substring(0, 2).toUpperCase() || "EN"}</span>
+                          </div>
+                        )}
                       </button>
                     );
                   })}

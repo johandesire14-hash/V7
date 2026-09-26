@@ -33,6 +33,7 @@ import {
   Globe,
   Share2,
   Music,
+  Sparkles,
 } from "lucide-react";
 import { CreatorBotSetupModal, CreatorCommunityConfig } from "./CreatorBotSetupModal";
 import { DiscordIcon, TelegramIcon } from "./common/Icons";
@@ -421,14 +422,12 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   const [pageCount, setPageCount] = useState(initialData?.ebookDetails?.pageCount || 96);
   const [ebookFormat, setEbookFormat] = useState(initialData?.ebookDetails?.format || "PDF & ePub");
 
-  // 6 Official Valid Mansa Apps
+  // 4 Official Valid Mansa Apps
   const VALID_MANSA_APPS = [
-    "Espace Membre",
-    "Discord",
     "Telegram",
-    "Téléchargement instantané",
-    "Fichiers & Documents",
-    "Lecteur E-book interactif",
+    "Discord",
+    "Fichiers",
+    "Cours & formations",
   ];
 
   // Helper to render official app icon
@@ -440,17 +439,39 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
       case "Telegram":
       case "Canal privé Telegram":
         return <TelegramIcon className={`${sizeClass} shrink-0`} />;
-      case "Téléchargement instantané":
-        return <Zap className={`${sizeClass} text-amber-400 shrink-0`} />;
+      case "Fichiers":
       case "Fichiers & Documents":
+      case "Téléchargement instantané":
         return <FileText className={`${sizeClass} text-emerald-400 shrink-0`} />;
-      case "Lecteur E-book interactif":
-        return <BookOpen className={`${sizeClass} text-cyan-400 shrink-0`} />;
-      case "Espace Membre":
-        return <ShieldCheck className={`${sizeClass} text-purple-400 shrink-0`} />;
+      case "Cours & formations":
+      case "Formation":
+        return <GraduationCap className={`${sizeClass} text-indigo-400 shrink-0`} />;
       default:
         return <CheckCircle2 className={`${sizeClass} text-[#3DDC84] shrink-0`} />;
     }
+  };
+
+  // Course modules creation & edition state
+  const [newModuleTitle, setNewModuleTitle] = useState("");
+  const [newModuleDuration, setNewModuleDuration] = useState("25 min");
+  const [isAddingCourseModule, setIsAddingCourseModule] = useState(false);
+
+  const handleAddCourseModule = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newModuleTitle.trim()) return;
+    const newMod: CourseModuleItem = {
+      id: "mod-" + Date.now(),
+      title: newModuleTitle.trim(),
+      duration: newModuleDuration.trim() || "20 min",
+    };
+    setCourseModules([...courseModules, newMod]);
+    setNewModuleTitle("");
+    setNewModuleDuration("25 min");
+    setIsAddingCourseModule(false);
+  };
+
+  const handleRemoveCourseModule = (id: string) => {
+    setCourseModules(courseModules.filter((m) => m.id !== id));
   };
 
   const sanitizeApps = (apps?: string[]): string[] => {
@@ -463,6 +484,18 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   const [selectedApps, setSelectedApps] = useState<string[]>(() => {
     return initialData?.includedApps ? sanitizeApps(initialData.includedApps) : [];
   });
+
+  // Applications effectives synchronisées entre le formulaire, les modules et la fiche preview
+  const effectivePreviewApps = React.useMemo(() => {
+    const list = new Set<string>(selectedApps);
+    if (productType === "course" || (courseModules && courseModules.length > 0)) {
+      list.add("Cours & formations");
+    }
+    if (productType === "ebook" || productType === "digital" || (digitalFiles && digitalFiles.length > 0)) {
+      list.add("Fichiers");
+    }
+    return Array.from(list).filter((a) => VALID_MANSA_APPS.includes(a));
+  }, [selectedApps, productType, courseModules, digitalFiles]);
 
   // CTA Text
   const [ctaButtonText, setCtaButtonText] = useState(
@@ -736,7 +769,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
       billingCycle,
       visibility: storefrontVisible ? "Visible" : "Caché",
       discoverStatus: isListedOnDiscover ? "Répertorié sur Discover" : "Non répertorié",
-      includedApps: selectedApps,
+      includedApps: effectivePreviewApps,
       conversionRate: "-",
       totalRevenue: `0 ${symbol}`,
       activeUsers: 0,
@@ -748,7 +781,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
       pricingOptions,
       faqs,
       digitalFiles: digitalFiles.length > 0 ? digitalFiles : undefined,
-      courseModules: productType === "course" ? courseModules : undefined,
+      courseModules: courseModules.length > 0 ? courseModules : undefined,
       ebookDetails:
         productType === "ebook"
           ? {
@@ -1137,7 +1170,8 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
             {/* ========================================================================= */}
             {/* SECTION D'UPLOAD DE FICHIERS / DOCUMENTS (POUR E-BOOK, GUIDE & DIGITALS) */}
             {/* ========================================================================= */}
-            {(selectedApps.includes("Fichiers & Documents") ||
+            {(selectedApps.includes("Fichiers") ||
+              selectedApps.includes("Fichiers & Documents") ||
               selectedApps.includes("Téléchargement instantané") ||
               productType === "ebook" ||
               productType === "digital" ||
@@ -1318,25 +1352,119 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
               </div>
             )}
 
+            {/* ========================================================================= */}
+            {/* SECTION COURS & FORMATIONS (POUR MODULES ET CONTENUS DE FORMATION)        */}
+            {/* ========================================================================= */}
+            {(productType === "course" || selectedApps.includes("Cours & formations")) && (
+              <div className="space-y-4 pt-3 border-t border-white/[0.08]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <GraduationCap className="size-4 text-indigo-400" />
+                      <span>Programme & Modules du cours</span>
+                    </h3>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      Organisez les modules, chapitres et vidéos inclus dans votre formation.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                    {courseModules.length} module(s)
+                  </span>
+                </div>
+
+                {/* Modules List */}
+                <div className="space-y-2">
+                  {courseModules.map((mod, idx) => (
+                    <div
+                      key={mod.id}
+                      className="p-3 rounded-xl bg-[#161820] border border-white/10 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="size-6 rounded-lg bg-indigo-500/15 text-indigo-400 font-bold flex items-center justify-center text-[10px] shrink-0 font-mono">
+                          {idx + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-white block truncate">{mod.title}</span>
+                          <span className="text-[10px] text-zinc-400 font-mono">{mod.duration}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCourseModule(mod.id)}
+                        className="text-zinc-500 hover:text-red-400 p-1 rounded hover:bg-white/5 cursor-pointer shrink-0"
+                        title="Supprimer le module"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add module form */}
+                {isAddingCourseModule ? (
+                  <form onSubmit={handleAddCourseModule} className="p-3.5 rounded-xl bg-[#12141c] border border-indigo-500/30 space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-zinc-300">Titre du module / chapitre</label>
+                      <input
+                        type="text"
+                        value={newModuleTitle}
+                        onChange={(e) => setNewModuleTitle(e.target.value)}
+                        placeholder="Ex: Module 1 : Fondations et méthode"
+                        className="w-full rounded-lg bg-[#0e1017] border border-white/10 px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-400"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-zinc-300">Durée ou nombre de vidéos</label>
+                      <input
+                        type="text"
+                        value={newModuleDuration}
+                        onChange={(e) => setNewModuleDuration(e.target.value)}
+                        placeholder="Ex: 35 min · 4 vidéos"
+                        className="w-full rounded-lg bg-[#0e1017] border border-white/10 px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-400"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingCourseModule(false)}
+                        className="px-3 py-1 text-xs text-zinc-400 hover:text-white cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer"
+                      >
+                        Ajouter ce module
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCourseModule(true)}
+                    className="w-full py-2.5 rounded-xl border border-dashed border-white/20 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="size-3.5 text-indigo-400" />
+                    <span>+ Ajouter un module de cours</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Apps checklist / selector */}
             <div className="space-y-2.5 pt-4 border-t border-white/[0.08]">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold text-zinc-200 block">
-                    Fonctionnalités additionnelles à inclure dans ce produit :
+                    Applications incluses dans ce produit :
                   </span>
                   <span className="text-[10px] text-[#B6B5B0]">
                     {selectedApps.length} sélectionnée{selectedApps.length > 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    "Telegram",
-                    "Discord",
-                    "Téléchargement instantané",
-                    "Fichiers & Documents",
-                    "Lecteur E-book interactif",
-                    "Espace Membre",
-                  ].map((app) => {
+                  {VALID_MANSA_APPS.map((app) => {
                     const isSelected = selectedApps.includes(app);
                     return (
                       <button
@@ -1847,18 +1975,55 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                 </button>
               </div>
 
-              {/* Big CTA Button (e.g. Rejoindre maintenant) */}
-              <button
-                type="button"
-                onClick={handleFinalSubmit}
-                className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer"
-              >
-                {ctaButtonText || "Rejoindre maintenant"}
-              </button>
+              {/* Applications incluses avec ce produit */}
+              {effectivePreviewApps.length > 0 && (
+                <div className="p-3.5 rounded-2xl bg-[#14161d] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="size-3.5 text-[#00D26A]" />
+                      <span>Applications incluses ({effectivePreviewApps.length})</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-[#00D26A]">Inclus</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {effectivePreviewApps.map((app) => (
+                      <div key={app} className="flex items-center justify-between p-2 rounded-xl bg-[#1c1e28] text-[11px]">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {renderAppIcon(app, "size-3.5")}
+                          <span className="font-semibold text-white truncate">{app}</span>
+                        </div>
+                        <span className="text-[10px] text-[#00D26A] font-bold">Débloqué</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
+              {/* Programme de formation si modules de cours */}
+              {courseModules.length > 0 &&
+                (effectivePreviewApps.includes("Cours & formations") || productType === "course") && (
+                <div className="p-3.5 rounded-2xl bg-[#14161d] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-white">
+                    <span className="flex items-center gap-1.5">
+                      <GraduationCap className="size-3.5 text-indigo-400" />
+                      <span>Modules de formation ({courseModules.length})</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-indigo-400">Cursus</span>
+                  </div>
+                  <div className="space-y-1">
+                    {courseModules.map((mod, idx) => (
+                      <div key={mod.id} className="flex items-center justify-between p-2 rounded-xl bg-[#1c1e28] text-[11px]">
+                        <span className="font-medium text-white truncate">{idx + 1}. {mod.title}</span>
+                        <span className="text-zinc-400 font-mono text-[10px]">{mod.duration}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fichiers inclus */}
               {digitalFiles.length > 0 &&
-                (selectedApps.includes("Fichiers & Documents") ||
-                  selectedApps.includes("Téléchargement instantané") ||
+                (effectivePreviewApps.includes("Fichiers") ||
                   productType === "ebook" ||
                   productType === "digital") && (
                 <div className="p-3.5 rounded-2xl bg-[#14161d] border border-white/10 space-y-2">
@@ -1895,6 +2060,15 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Big CTA Button (e.g. Rejoindre maintenant) */}
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer"
+              >
+                {ctaButtonText || "Rejoindre maintenant"}
+              </button>
 
               {/* Description Block with [Écrire] / [Aperçu] tabs */}
               <div className="space-y-2 pt-2 border-t border-white/[0.08]">
@@ -2059,9 +2233,97 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                     </h1>
                   </div>
 
+                  {/* Applications incluses avec ce produit */}
+                  {effectivePreviewApps.length > 0 && (
+                    <div className="space-y-2.5 pt-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                          <Sparkles className="size-3.5 text-[#00D26A]" />
+                          <span>Applications incluses avec ce produit</span>
+                        </h3>
+                        <span className="text-[10px] font-mono text-[#00D26A] bg-[#00D26A]/10 px-2 py-0.5 rounded border border-[#00D26A]/20">
+                          {effectivePreviewApps.length} application{effectivePreviewApps.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {effectivePreviewApps.map((app) => {
+                          let appTitle = app;
+                          let appDesc = "Accès inclus dès validation.";
+                          let appIcon = renderAppIcon(app, "size-4");
+
+                          if (app === "Telegram") {
+                            appTitle = "Canal Telegram VIP";
+                            appDesc = "Accès au canal privé d'alertes & diffusion Telegram.";
+                          } else if (app === "Discord") {
+                            appTitle = "Serveur Discord VIP";
+                            appDesc = "Salons VIP et gestion automatique des rôles.";
+                          } else if (app === "Fichiers" || app === "Fichiers & Documents") {
+                            appTitle = "Fichiers & Documents";
+                            appDesc = `${digitalFiles.length > 0 ? `${digitalFiles.length} fichier(s) prêt(s)` : "Téléchargement immédiat des ressources"}`;
+                          } else if (app === "Cours & formations") {
+                            appTitle = "Cours & Formations vidéo";
+                            appDesc = `${courseModules.length > 0 ? `${courseModules.length} module(s) vidéo inclus` : "Cursus complet pas à pas"}`;
+                          }
+
+                          return (
+                            <div
+                              key={app}
+                              className="p-3.5 rounded-xl bg-[#14161f] border border-white/10 flex items-start gap-3"
+                            >
+                              <div className="size-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                                {appIcon}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-bold text-white text-xs block truncate">{appTitle}</span>
+                                <span className="text-[11px] text-zinc-400 block line-clamp-1 leading-snug">{appDesc}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Course curriculum if modules exist */}
+                  {courseModules.length > 0 &&
+                    (selectedApps.includes("Cours & formations") || productType === "course") && (
+                    <div className="p-5 rounded-2xl bg-[#14161f] border border-white/10 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="size-4 text-indigo-400" />
+                          <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                            Programme de la formation
+                          </h3>
+                        </div>
+                        <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                          {courseModules.length} module(s)
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {courseModules.map((mod, idx) => (
+                          <div
+                            key={mod.id}
+                            className="p-3 rounded-xl bg-[#1a1d27] border border-white/5 flex items-center justify-between text-xs"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="size-5 rounded bg-indigo-500/20 text-indigo-400 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              <span className="font-semibold text-white truncate">{mod.title}</span>
+                            </div>
+                            <span className="text-[11px] font-mono text-zinc-400 shrink-0">{mod.duration}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Uploaded Files Section (for E-books and digital items) */}
                   {digitalFiles.length > 0 &&
-                    (selectedApps.includes("Fichiers & Documents") ||
+                    (selectedApps.includes("Fichiers") ||
+                      selectedApps.includes("Fichiers & Documents") ||
                       selectedApps.includes("Téléchargement instantané") ||
                       productType === "ebook" ||
                       productType === "digital") && (
@@ -2216,6 +2478,34 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                         </div>
                       ))}
                     </div>
+
+                    {/* Applications débloquées avec ce produit */}
+                    {effectivePreviewApps.length > 0 && (
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300">
+                          <span className="flex items-center gap-1.5 text-white">
+                            <CheckCircle2 className="size-3.5 text-[#00D26A]" />
+                            <span>Inclus avec cet achat :</span>
+                          </span>
+                          <span className="text-[#00D26A] font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#00D26A]/10 border border-[#00D26A]/20">
+                            {effectivePreviewApps.length} accès
+                          </span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {effectivePreviewApps.map((app) => (
+                            <div key={app} className="flex items-center justify-between text-xs text-zinc-300 bg-white/[0.02] px-2.5 py-1.5 rounded-xl border border-white/5">
+                              <div className="flex items-center gap-2 min-w-0">
+                                {renderAppIcon(app, "size-3.5")}
+                                <span className="font-medium text-white truncate">{app}</span>
+                              </div>
+                              <span className="text-[10px] font-mono text-[#00D26A] shrink-0 font-semibold">
+                                Débloqué
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Main CTA Button */}
                     <button

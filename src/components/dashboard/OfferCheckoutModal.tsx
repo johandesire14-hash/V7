@@ -23,6 +23,7 @@ import {
   Headphones,
   Sparkles,
   LayoutDashboard,
+  FileCheck,
 } from "lucide-react";
 import { TelegramIcon, DiscordIcon } from "../common/Icons";
 import {
@@ -50,6 +51,9 @@ interface OfferCheckoutModalProps {
     avatarInitials?: string;
   };
   onPaymentSuccess: (newSubscription: EnterpriseSubscription) => void;
+  isCompanyOwner?: boolean;
+  isAlreadyPurchased?: boolean;
+  onAccessContent?: (offer: CreatorPlatformOffer) => void;
 }
 
 export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
@@ -58,6 +62,9 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
   offer,
   user,
   onPaymentSuccess,
+  isCompanyOwner = false,
+  isAlreadyPurchased = false,
+  onAccessContent,
 }) => {
   if (!isOpen || !offer) return null;
 
@@ -69,7 +76,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<"card" | "mobile_money">("mobile_money");
   const [mobileMoneyValidation, setMobileMoneyValidation] = useState<PhoneValidationResult | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [customerEmail, setCustomerEmail] = useState<string>(user?.email || "johan@afhub.app");
+  const [customerEmail, setCustomerEmail] = useState<string>(user?.email || "client@mansa.app");
   const customerName = user?.name || (user as any)?.displayName || "Client";
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
@@ -81,15 +88,15 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     : [
         {
           q: "Comment fonctionne l'accès après le paiement ?",
-          a: "Votre accès à l'entreprise est débloqué instantanément. Vous rejoignez l'entreprise en tant que membre et vous retrouvez vos canaux Telegram et accès Discord directement dans votre barre d'entreprise afhub.",
+          a: "Votre accès à l'entreprise est débloqué instantanément. Vous rejoignez l'entreprise en tant que membre et vous retrouvez vos applications (Telegram, Discord, Fichiers, Cours) directement dans votre espace.",
         },
         {
           q: "Ai-je accès à toutes les options de l'entreprise ?",
-          a: "En rejoignant cette entreprise, vous avez accès à l'accueil et au support client. Les options spécifiques (canaux Telegram VIP, salons Discord VIP) sont activées selon la formule choisie.",
+          a: "En débloquant cette offre, vous avez accès à l'accueil, au support client et à toutes les applications incluses dans la formule choisie.",
         },
         {
           q: "Puis-je résilier à tout moment ?",
-          a: "Oui, la résiliation s'effectue en 1 clic depuis votre espace membre dans afhub. Aucun engagement de durée, vous gardez l'accès jusqu'à la fin de la période facturée.",
+          a: "Oui, la gestion s'effectue en 1 clic depuis votre espace membre dans Mansa. Aucun engagement de durée, vous gardez l'accès jusqu'à la fin de la période facturée.",
         },
       ];
 
@@ -112,28 +119,30 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
 
   const currentPlan = pricingPlans.find((p) => p.id === selectedPlanId) || pricingPlans[0];
 
-  // Resolve all apps and privileges included with this product
+  // Resolve all apps strictly to the 4 official Mansa Apps: Telegram, Discord, Fichiers, Cours & formations
   const resolvedApps = React.useMemo<string[]>(() => {
     const list: string[] = [];
     if (offer.includedApps && offer.includedApps.length > 0) {
-      list.push(...offer.includedApps);
+      for (const app of offer.includedApps) {
+        const lower = app.toLowerCase();
+        if (lower.includes("telegram")) list.push("Telegram");
+        else if (lower.includes("discord")) list.push("Discord");
+        else if (lower.includes("cours") || lower.includes("course") || lower.includes("formation")) list.push("Cours & formations");
+        else if (lower.includes("fichier") || lower.includes("file") || lower.includes("ebook") || lower.includes("téléchargement")) list.push("Fichiers");
+      }
     }
-    if (offer.telegramChannels && offer.telegramChannels.length > 0 && !list.includes("telegram")) {
-      list.push("telegram");
+    if (offer.telegramChannels && offer.telegramChannels.length > 0 && !list.includes("Telegram")) {
+      list.push("Telegram");
     }
-    if (offer.discordChannels && offer.discordChannels.length > 0 && !list.includes("discord")) {
-      list.push("discord");
+    if (offer.discordChannels && offer.discordChannels.length > 0 && !list.includes("Discord")) {
+      list.push("Discord");
     }
-    if (offer.courses && offer.courses.length > 0 && !list.some((a) => a.includes("cours") || a.includes("course"))) {
-      list.push("courses");
+    if (((offer.courses && offer.courses.length > 0) || ((offer as any).courseModules && (offer as any).courseModules.length > 0)) && !list.includes("Cours & formations")) {
+      list.push("Cours & formations");
     }
-    if (offer.ebooks && offer.ebooks.length > 0 && !list.some((a) => a.includes("ebook") || a.includes("file"))) {
-      list.push("ebook");
+    if (((offer.ebooks && offer.ebooks.length > 0) || ((offer as any).digitalFiles && (offer as any).digitalFiles.length > 0)) && !list.includes("Fichiers")) {
+      list.push("Fichiers");
     }
-    if (list.length === 0) {
-      list.push("community", "support");
-    }
-    // Remove duplicates while keeping order
     return Array.from(new Set(list));
   }, [offer]);
 
@@ -144,8 +153,8 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
         title: "Canal Telegram VIP",
         description:
           offer.telegramChannels?.[0]?.description ||
-          "Signaux, alertes et canal de diffusion privé réservé aux membres.",
-        badge: "Accès Telegram",
+          "Alertes privées, signaux et canal de diffusion officiel réservé aux membres.",
+        badge: "Telegram",
         icon: <TelegramIcon className="size-5 text-[#229ED9]" />,
       };
     }
@@ -154,82 +163,74 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
         title: "Serveur Discord VIP",
         description:
           offer.discordChannels?.[0]?.description ||
-          "Salons textuels et vocaux privés avec attribution automatique de vos rôles.",
-        badge: "Rôles Discord",
+          "Salons textuels et vocaux VIP avec attribution automatique des rôles.",
+        badge: "Discord",
         icon: <DiscordIcon className="size-5 text-[#5865F2]" />,
       };
     }
-    if (
-      key.includes("course") ||
-      key.includes("cours") ||
-      key.includes("formation") ||
-      key.includes("masterclass")
-    ) {
+    if (key.includes("cours") || key.includes("course") || key.includes("formation")) {
       return {
-        title: "Formation Vidéo & Modules",
+        title: "Cours & Formations vidéo",
         description:
           offer.courses?.[0]?.description ||
-          "Accès complet aux modules vidéo interactifs et chapitres de cours.",
+          "Accès complet au cursus vidéo interactif et fiches d'exercices pratiques.",
         badge: "Formation",
         icon: <GraduationCap className="size-5 text-indigo-400" />,
       };
     }
-    if (key.includes("ebook") || key.includes("guide") || key.includes("pdf")) {
-      return {
-        title: "E-book & Guides Pratiques",
-        description:
-          offer.ebooks?.[0]?.description ||
-          "Documents PDF complets, fiches mémo et guides téléchargeables.",
-        badge: "E-book",
-        icon: <BookOpen className="size-5 text-emerald-400" />,
-      };
-    }
-    if (
-      key.includes("file") ||
-      key.includes("fichier") ||
-      key.includes("ressource") ||
-      key.includes("downloads")
-    ) {
-      return {
-        title: "Fichiers & Ressources",
-        description: "Templates, fichiers sources et tableurs directement exploitables.",
-        badge: "Fichiers",
-        icon: <FileText className="size-5 text-amber-400" />,
-      };
-    }
-    if (key.includes("support") || key.includes("assistance")) {
-      return {
-        title: "Assistance Dédiée & Équipe",
-        description:
-          "Échange direct avec l'équipe de l'entreprise pour un accompagnement continu.",
-        badge: "Support",
-        icon: <Headphones className="size-5 text-emerald-400" />,
-      };
-    }
-    if (key.includes("communit") || key.includes("communaut")) {
-      return {
-        title: "Espace Communauté Officiel",
-        description:
-          "Accès au flux de publications exclusives, actualités et échanges de l'entreprise.",
-        badge: "Communauté",
-        icon: <Users className="size-5 text-sky-400" />,
-      };
-    }
-    if (key.includes("dashboard") || key.includes("tableau")) {
-      return {
-        title: "Tableau de Bord Membre",
-        description:
-          "Accès personnel à l'espace de gestion et suivi de vos abonnements.",
-        badge: "Espace membre",
-        icon: <LayoutDashboard className="size-5 text-zinc-300" />,
-      };
-    }
     return {
-      title: appKey.charAt(0).toUpperCase() + appKey.slice(1),
-      description: `Accès complet à l'application ${appKey} inclus avec votre achat.`,
-      badge: "Inclus",
-      icon: <Sparkles className="size-5 text-emerald-400" />,
+      title: "Fichiers & Documents",
+      description: "Templates, fichiers téléchargeables et guides immédiatement disponibles.",
+      badge: "Fichiers",
+      icon: <FileText className="size-5 text-emerald-400" />,
     };
+  };
+
+  const handleOwnerFreeUnlock = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      const baseApps = ["dashboard", "support"];
+      const offerApps = offer.includedApps || [];
+      const combinedApps = Array.from(new Set([...baseApps, ...offerApps]));
+
+      const ownerSub: EnterpriseSubscription = {
+        id: `sub-${offer.companyId}-${Date.now()}`,
+        companyId: offer.companyId,
+        companyName: offer.companyName,
+        companyInitials:
+          offer.companyInitials ||
+          offer.companyName.substring(0, 2).toUpperCase(),
+        companyLogo: offer.companyLogo,
+        companyGradient:
+          offer.companyGradient || "from-[#0d2818] via-[#051f10] to-[#010a04]",
+        productName: offer.title,
+        productId: offer.id,
+        priceDisplay: offer.priceDisplay,
+        status: "active",
+        subscribedAt: "À l'instant",
+        onlineMembersCount: 142,
+        unreadCount: 0,
+        includedApps: combinedApps,
+        unlockedProductIds: [offer.id],
+        purchasedOfferIds: [offer.id],
+        hasPaidOffer: true,
+        telegramChannels: offer.telegramChannels || [],
+        discordChannels: offer.discordChannels || [],
+        ebooks: offer.ebooks || [],
+        courses: offer.courses || [],
+        customResources: offer.customResources || [],
+        discordServerName: `${offer.companyName} Discord HQ`,
+        discordInvite: offer.discordInvite || (offer.discordChannels?.[0]?.inviteLink || ""),
+        supportChannels: {
+          telegramSupport: "@SupportEquipeAfhub",
+          email: `support@${offer.companyId}.afhub.app`,
+        },
+      };
+
+      setCreatedSubscription(ownerSub);
+      setIsProcessing(false);
+      setIsCompleted(true);
+    }, 400);
   };
 
   const isMobileMoneyValid =
@@ -652,6 +653,75 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                 </div>
               )}
 
+              {/* Programme de formation si modules de cours */}
+              {((offer.courses && offer.courses.length > 0) || ((offer as any).courseModules && (offer as any).courseModules.length > 0)) && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#14161f] border border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="size-4 text-indigo-400" />
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Programme de la formation
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                      {((offer as any).courseModules?.length || offer.courses?.length || 1)} module(s)
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {((offer as any).courseModules || offer.courses || []).map((item: any, idx: number) => (
+                      <div
+                        key={item.id || idx}
+                        className="p-3 rounded-xl bg-[#1a1d27] border border-white/5 flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="size-5 rounded bg-indigo-500/20 text-indigo-400 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="font-semibold text-white truncate">{item.title || item.name}</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-zinc-400 shrink-0">{item.duration || "Module complet"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Documents & Fichiers si présents */}
+              {((offer.ebooks && offer.ebooks.length > 0) || ((offer as any).digitalFiles && (offer as any).digitalFiles.length > 0)) && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#14161f] border border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="size-4 text-emerald-400" />
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Documents et Fichiers à Télécharger
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                      {((offer as any).digitalFiles?.length || offer.ebooks?.length || 1)} fichier(s)
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {((offer as any).digitalFiles || offer.ebooks || []).map((file: any, idx: number) => (
+                      <div
+                        key={file.id || idx}
+                        className="p-3 rounded-xl bg-[#1a1d27] border border-white/5 flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <FileCheck className="size-4 text-emerald-400 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="font-bold text-white block truncate">{file.title || file.name}</span>
+                            <span className="text-[10px] text-zinc-400 font-mono">{file.size || (file.pagesCount ? `${file.pagesCount} pages` : "Téléchargement immédiat")}</span>
+                          </div>
+                        </div>
+                        <span className="text-[11px] font-bold text-emerald-400">Prêt</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* FAQ Section Accordion */}
               <div className="space-y-2.5 pt-2">
                 <h4 className="text-xs font-bold text-white uppercase tracking-wider">
@@ -776,135 +846,197 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                   </div>
                 )}
 
-                {/* Buyer Information Fields */}
-                <div className="space-y-3 pt-1">
-                  <div>
-                    <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
-                      Votre adresse email pour la confirmation :
-                    </label>
-                    <input
-                      type="email"
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#1b1e2a] px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-emerald-400"
-                      placeholder="nom@exemple.com"
-                    />
-                  </div>
-                </div>
-
-                {/* Payment Method Selector */}
-                {offer.pricingType === "paid" && (
-                  <div className="space-y-2 pt-1">
-                    <label className="text-[11px] font-bold text-zinc-300 block">
-                      Mode de paiement sécurisé :
-                    </label>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod("card")}
-                        className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                          paymentMethod === "card"
-                            ? "border-emerald-400 bg-emerald-500/15 text-white"
-                            : "border-white/10 bg-[#1b1e2a] text-zinc-400 hover:text-white"
-                        }`}
-                      >
-                        <CreditCard className="size-3.5 text-emerald-400" />
-                        <span>Carte bancaire</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod("mobile_money")}
-                        className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                          paymentMethod === "mobile_money"
-                            ? "border-amber-400 bg-amber-400/15 text-white"
-                            : "border-white/10 bg-[#1b1e2a] text-zinc-400 hover:text-white"
-                        }`}
-                      >
-                        <Smartphone className="size-3.5 text-amber-400" />
-                        <span>Mobile Money</span>
-                      </button>
+                {/* Buyer Information & Action Handling based on status */}
+                {isAlreadyPurchased ? (
+                  <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-4">
+                    <div className="size-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="size-6" />
                     </div>
-
-                    {paymentMethod === "mobile_money" && (
-                      <MobileMoneyPaymentForm
-                        currency={offer.currency || "XAF"}
-                        onValidationChange={setMobileMoneyValidation}
-                        defaultDialCode="+242"
-                      />
-                    )}
-
-                    {paymentError && (
-                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
-                        <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-bold text-white">Échec du paiement</p>
-                          <p className="text-[11px] text-red-200/90 leading-tight">{paymentError}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Main CTA Button */}
-                <div className="space-y-1.5">
-                  <button
-                    type="button"
-                    disabled={isPayButtonDisabled}
-                    onClick={handleProcessPayment}
-                    className={`w-full py-4 rounded-2xl font-black text-base shadow-xl transition-all flex items-center justify-center gap-2 ${
-                      isPayButtonDisabled
-                        ? "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5 opacity-60"
-                        : "bg-[#0066FF] hover:bg-[#0055EE] text-white cursor-pointer shadow-blue-500/20"
-                    }`}
-                  >
-                    {isProcessing ? (
-                      <div className="flex items-center gap-2">
-                        <span className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        <span>Validation sécurisée...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <span>
-                          {offer.pricingType === "free"
-                            ? "Rejoindre l'entreprise (Gratuit)"
-                            : `Payer ${currentPlan.price} ${offer.currency === "EUR" ? "€" : offer.currency} & Rejoindre`}
-                        </span>
-                        <ArrowRight className="size-4" />
-                      </>
-                    )}
-                  </button>
-
-                  {offer.pricingType === "paid" &&
-                    paymentMethod === "mobile_money" &&
-                    !mobileMoneyValidation?.isValid && (
-                      <p className="text-center text-[10px] text-zinc-400 flex items-center justify-center gap-1.5 pt-0.5">
-                        <Lock className="size-3 text-amber-400/80" />
-                        <span>Saisissez un numéro Mobile Money valide pour activer le paiement</span>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-white">Offre déjà débloquée</h3>
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        Vous avez déjà accès à cette offre et à tous ses privilèges. Aucun nouveau paiement n'est nécessaire.
                       </p>
-                    )}
-                </div>
-
-                {/* Option to join company without paying this offer */}
-                {offer.pricingType !== "free" && (
-                  <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-2">
-                    <div className="text-xs text-zinc-300 font-medium">
-                      Ou rejoignez l'entreprise en tant que membre simple
                     </div>
                     <button
                       type="button"
-                      disabled={isProcessing}
-                      onClick={handleJoinCompanyFree}
-                      className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs font-semibold border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40"
+                      onClick={() => {
+                        if (onAccessContent) {
+                          onAccessContent(offer);
+                          onClose();
+                        } else {
+                          onClose();
+                        }
+                      }}
+                      className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-sm shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
-                      <UserPlus className="size-3.5 text-emerald-400" />
-                      <span>Rejoindre {offer.companyName} sans offre</span>
+                      <span>Accéder au contenu</span>
+                      <ArrowRight className="size-4" />
                     </button>
-                    <p className="text-[10px] text-zinc-500 leading-tight">
-                      Accès immédiat à la page d'accueil et au support. L'offre {offer.title} et les canaux VIP restent verrouillés.
-                    </p>
                   </div>
+                ) : isCompanyOwner ? (
+                  <div className="p-5 rounded-2xl bg-[#0066FF]/10 border border-[#0066FF]/30 text-center space-y-4">
+                    <div className="size-12 rounded-2xl bg-[#0066FF]/20 text-[#0066FF] flex items-center justify-center mx-auto">
+                      <Building2 className="size-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-white">Aperçu Public (Créateur)</h3>
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        Vous prévisualisez l'offre comme un client. En tant que propriétaire de l'entreprise, votre accès est gratuit.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOwnerFreeUnlock}
+                      disabled={isProcessing}
+                      className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {isProcessing ? (
+                        <div className="flex items-center gap-2">
+                          <span className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                          <span>Activation en cours...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <span>Accéder à l'offre (Accès Créateur · Gratuit)</span>
+                          <ArrowRight className="size-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Buyer Information Fields */}
+                    <div className="space-y-3 pt-1">
+                      <div>
+                        <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
+                          Votre adresse email pour la confirmation :
+                        </label>
+                        <input
+                          type="email"
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-[#1b1e2a] px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-emerald-400"
+                          placeholder="nom@exemple.com"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Payment Method Selector */}
+                    {offer.pricingType === "paid" && (
+                      <div className="space-y-2 pt-1">
+                        <label className="text-[11px] font-bold text-zinc-300 block">
+                          Mode de paiement sécurisé :
+                        </label>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod("card")}
+                            className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                              paymentMethod === "card"
+                                ? "border-emerald-400 bg-emerald-500/15 text-white"
+                                : "border-white/10 bg-[#1b1e2a] text-zinc-400 hover:text-white"
+                            }`}
+                          >
+                            <CreditCard className="size-3.5 text-emerald-400" />
+                            <span>Carte bancaire</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod("mobile_money")}
+                            className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                              paymentMethod === "mobile_money"
+                                ? "border-amber-400 bg-amber-400/15 text-white"
+                                : "border-white/10 bg-[#1b1e2a] text-zinc-400 hover:text-white"
+                            }`}
+                          >
+                            <Smartphone className="size-3.5 text-amber-400" />
+                            <span>Mobile Money</span>
+                          </button>
+                        </div>
+
+                        {paymentMethod === "mobile_money" && (
+                          <MobileMoneyPaymentForm
+                            currency={offer.currency || "XAF"}
+                            onValidationChange={setMobileMoneyValidation}
+                            defaultDialCode="+242"
+                          />
+                        )}
+
+                        {paymentError && (
+                          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+                            <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-white">Échec du paiement</p>
+                              <p className="text-[11px] text-red-200/90 leading-tight">{paymentError}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Main CTA Button */}
+                    <div className="space-y-1.5">
+                      <button
+                        type="button"
+                        disabled={isPayButtonDisabled}
+                        onClick={handleProcessPayment}
+                        className={`w-full py-4 rounded-2xl font-black text-base shadow-xl transition-all flex items-center justify-center gap-2 ${
+                          isPayButtonDisabled
+                            ? "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5 opacity-60"
+                            : "bg-[#0066FF] hover:bg-[#0055EE] text-white cursor-pointer shadow-blue-500/20"
+                        }`}
+                      >
+                        {isProcessing ? (
+                          <div className="flex items-center gap-2">
+                            <span className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            <span>Validation sécurisée...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <span>
+                              {offer.pricingType === "free"
+                                ? "Rejoindre l'entreprise (Gratuit)"
+                                : `Payer ${currentPlan.price} ${offer.currency === "EUR" ? "€" : offer.currency} & Rejoindre`}
+                            </span>
+                            <ArrowRight className="size-4" />
+                          </>
+                        )}
+                      </button>
+
+                      {offer.pricingType === "paid" &&
+                        paymentMethod === "mobile_money" &&
+                        !mobileMoneyValidation?.isValid && (
+                          <p className="text-center text-[10px] text-zinc-400 flex items-center justify-center gap-1.5 pt-0.5">
+                            <Lock className="size-3 text-amber-400/80" />
+                            <span>Saisissez un numéro Mobile Money valide pour activer le paiement</span>
+                          </p>
+                        )}
+                    </div>
+
+                    {/* Option to join company without paying this offer */}
+                    {offer.pricingType !== "free" && (
+                      <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-2">
+                        <div className="text-xs text-zinc-300 font-medium">
+                          Ou rejoignez l'entreprise en tant que membre simple
+                        </div>
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={handleJoinCompanyFree}
+                          className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs font-semibold border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40"
+                        >
+                          <UserPlus className="size-3.5 text-emerald-400" />
+                          <span>Rejoindre {offer.companyName} sans offre</span>
+                        </button>
+                        <p className="text-[10px] text-zinc-500 leading-tight">
+                          Accès immédiat à la page d'accueil et au support. L'offre {offer.title} et les canaux VIP restent verrouillés.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Security Checklist */}
