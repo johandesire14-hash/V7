@@ -80,6 +80,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
   const customerName = user?.name || (user as any)?.displayName || "Client";
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [isPaymentPanelOpen, setIsPaymentPanelOpen] = useState<boolean>(false);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
   const [createdSubscription, setCreatedSubscription] = useState<EnterpriseSubscription | null>(null);
 
@@ -855,7 +856,33 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                   </div>
                 ) : (
                   <>
-                    {/* Buyer Information Fields */}
+                    {!isPaymentPanelOpen ? (
+                      <div className="rounded-2xl border border-[#0066FF]/30 bg-[#0066FF]/10 p-5 text-center space-y-3">
+                        <div className="size-10 rounded-xl bg-[#0066FF]/20 text-[#4d8dff] flex items-center justify-center mx-auto">
+                          <CreditCard className="size-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Prêt à rejoindre cette offre ?</h3>
+                          <p className="mt-1 text-xs text-zinc-400">Passez à l’étape suivante pour renseigner vos informations de paiement.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsPaymentPanelOpen(true)}
+                          className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          <span>{offer.pricingType === "free" ? "Continuer vers l’adhésion" : "Continuer vers le paiement"}</span>
+                          <ArrowRight className="size-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-white/10 bg-[#10131b] p-4 space-y-4">
+                        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                          <div>
+                            <h3 className="text-sm font-bold text-white">Panneau de paiement</h3>
+                            <p className="text-[11px] text-zinc-400 mt-0.5">Vos informations restent liées à cette commande.</p>
+                          </div>
+                          <button type="button" onClick={() => setIsPaymentPanelOpen(false)} className="text-[11px] font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer">Retour au produit</button>
+                        </div>
                     <div className="space-y-3 pt-1">
                       <div>
                         <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
@@ -965,9 +992,10 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                         )}
                     </div>
 
+                      </div>
+                    )}
                   </>
                 )}
-
                 {/* Security Checklist */}
                 <div className="space-y-2 text-xs text-zinc-300 pt-2 border-t border-white/5">
                   <div className="flex items-center gap-2">

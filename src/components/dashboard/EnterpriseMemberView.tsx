@@ -1455,6 +1455,16 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           )}
         </div>
 
+        {isCompanyOwner && !canManageCompany && (
+          <button
+            type="button"
+            onClick={() => { setPreviewMode("admin"); setIsPreviewMenuOpen(false); }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/10 px-3.5 py-2.5 text-xs font-semibold text-blue-200 hover:bg-blue-500/20 transition-colors"
+          >
+            <Eye className="size-3.5" />
+            Revenir en mode Administrateur
+          </button>
+        )}
         {canManageCompany && (
           <div className="relative">
             <button
@@ -2087,6 +2097,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                           <Share2 className="size-3.5 text-zinc-400" />
                           <span>COPIER LE LIEN</span>
                         </button>
+                        {!canManageCompany && (
+                          <>
                         <button
                           onClick={() => {
                             setIsReportModalOpen(true);
@@ -2107,6 +2119,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                           <ShieldCheck className="size-3.5 text-indigo-400" />
                           <span>GÉRER L’ADHÉSION</span>
                         </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
