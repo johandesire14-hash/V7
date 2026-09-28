@@ -1181,25 +1181,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 }`}
                 title={lang === "fr" ? "Espace Personnel" : "Personal Workspace"}
               >
-                {activeCompany?.companyLogo || companies[0]?.companyLogo ? (
-                  <img
-                    src={activeCompany?.companyLogo || companies[0].companyLogo}
-                    alt={activeCompany?.name || companies[0]?.name || "Entreprise"}
-                    className="size-full object-cover"
-                  />
-                ) : (activeCompany || companies[0]) ? (
-                  <div
-                    className={`size-full bg-gradient-to-br ${
-                      (activeCompany || companies[0]).colorGradient || "from-emerald-950 via-slate-900 to-black"
-                    } flex items-center justify-center text-[10px] font-black text-white font-mono`}
-                  >
-                    <span>{(activeCompany || companies[0]).logoInitials || (activeCompany || companies[0]).name.substring(0, 2).toUpperCase() || "CF"}</span>
-                  </div>
-                ) : (
-                  <div className="size-full bg-gradient-to-br from-emerald-950 to-zinc-900 flex items-center justify-center text-[10px] font-bold text-emerald-400 font-mono">
-                    <span>AF</span>
-                  </div>
-                )}
+                <div className="size-full bg-[#1b1d22] flex items-center justify-center text-zinc-300">
+                  <User className="size-4" />
+                </div>
               </button>
 
               <div className="h-5 w-px bg-white/10 shrink-0 mx-0.5" />

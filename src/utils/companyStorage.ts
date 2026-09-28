@@ -126,6 +126,7 @@ export function saveCompany(userKey: string = "default", newCompany: Omit<Compan
     supportAutoReplyMessage: newCompany.supportAutoReplyMessage || "Bonjour ! Merci d'avoir contacté notre équipe. Nous avons bien reçu votre message et nous vous répondrons dans les plus brefs délais.",
     companyBanner: newCompany.companyBanner || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1800&q=85",
     companyLogo: newCompany.companyLogo || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80",
+    socialLinks: newCompany.socialLinks || {},
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -223,6 +224,7 @@ export function updateCompanyBranding(
     companyLogo?: string;
     name?: string;
     description?: string;
+    socialLinks?: Record<string, string>;
   }
 ): { companies: Company[]; updatedCompany: Company | null } {
   const current = getSavedCompanies(userKey);

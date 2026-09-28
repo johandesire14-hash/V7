@@ -98,6 +98,15 @@ export interface CategoryCardItem {
   colorGradient?: string;
 }
 
+export interface CompanySocialLinks {
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  linkedin?: string;
+  twitter?: string;
+  website?: string;
+}
+
 export interface Company {
   id: string;
   name: string; // Nom de l'entreprise
@@ -111,6 +120,7 @@ export interface Company {
   supportAutoReplyMessage?: string;
   companyBanner?: string; // Bannière personnalisée de l'entreprise
   companyLogo?: string; // Photo de profil / Logo de l'entreprise
+  socialLinks?: CompanySocialLinks;
   createdAt: string;
   updatedAt?: string;
   payoutMethod?: string;
@@ -211,6 +221,7 @@ export interface CreatorPlatformOffer {
   companyName: string;
   companyInitials?: string;
   companyLogo?: string;
+  socialLinks?: CompanySocialLinks;
   companyGradient?: string;
   category: string;
   categoryLabel?: string;
@@ -250,6 +261,7 @@ export interface EnterpriseSubscription {
   companyInitials?: string;
   companyLogo?: string;
   companyBanner?: string;
+  socialLinks?: CompanySocialLinks;
   companyGradient?: string;
   productName: string;
   productId?: string;

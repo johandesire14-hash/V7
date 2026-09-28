@@ -9,8 +9,10 @@ import {
   Sparkles,
   Building2,
   CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 import { useModalDismiss } from "../../hooks/useModalDismiss";
+import { CompanySocialLinks } from "../../types";
 
 interface EnterpriseBrandingModalProps {
   isOpen: boolean;
@@ -21,12 +23,14 @@ interface EnterpriseBrandingModalProps {
     description?: string;
     companyBanner?: string;
     companyLogo?: string;
+    socialLinks?: CompanySocialLinks;
   };
   onSave: (branding: {
     name: string;
     description: string;
     companyBanner: string;
     companyLogo: string;
+    socialLinks: CompanySocialLinks;
   }) => void;
   lang?: "fr" | "en";
 }
@@ -82,6 +86,7 @@ export const EnterpriseBrandingModal: React.FC<EnterpriseBrandingModalProps> = (
     company.companyLogo ||
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80"
   );
+  const [socialLinks, setSocialLinks] = useState<CompanySocialLinks>(company.socialLinks || {});
   const [isSaved, setIsSaved] = useState(false);
 
   const bannerFileRef = useRef<HTMLInputElement | null>(null);
@@ -120,6 +125,7 @@ export const EnterpriseBrandingModal: React.FC<EnterpriseBrandingModalProps> = (
       description: description.trim(),
       companyBanner: companyBanner.trim(),
       companyLogo: companyLogo.trim(),
+      socialLinks: Object.fromEntries(Object.entries(socialLinks).filter(([, value]) => value.trim())),
     });
     setIsSaved(true);
     setTimeout(() => {
@@ -237,6 +243,19 @@ export const EnterpriseBrandingModal: React.FC<EnterpriseBrandingModalProps> = (
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-[#16181f] p-2.5 text-white outline-none focus:border-[#00D26A]"
               />
+            </div>
+          </div>
+
+          {/* Liens sociaux visibles dans l'accueil de la communauté */}
+          <div className="p-4 rounded-2xl bg-[#14151a] border border-white/5 space-y-3">
+            <div className="flex items-center gap-2">
+              <ExternalLink className="size-4 text-emerald-400" />
+              <span className="text-xs font-bold text-white">Liens sociaux de la communauté</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[['instagram','Instagram'],['tiktok','TikTok'],['youtube','YouTube'],['linkedin','LinkedIn'],['twitter','X / Twitter'],['website','Site web']].map(([key,label]) => (
+                <input key={key} type="url" value={socialLinks[key] || ""} onChange={(e) => setSocialLinks((prev) => ({ ...prev, [key]: e.target.value }))} placeholder={`${label} · https://...`} className="w-full rounded-xl border border-white/10 bg-[#0d0e12] p-2.5 text-xs font-mono text-zinc-200 outline-none focus:border-[#00D26A]" />
+              ))}
             </div>
           </div>
 

@@ -665,6 +665,7 @@ export function updateSubscriptionBranding(
     companyBanner?: string;
     companyLogo?: string;
     companyName?: string;
+    socialLinks?: Record<string, string>;
   }
 ): EnterpriseSubscription[] {
   const current = getSavedSubscriptions(userKey);
@@ -675,6 +676,7 @@ export function updateSubscriptionBranding(
         companyName: branding.companyName || sub.companyName,
         companyLogo: branding.companyLogo || sub.companyLogo,
         companyBanner: branding.companyBanner || sub.companyBanner,
+        socialLinks: branding.socialLinks || sub.socialLinks,
       };
     }
     return sub;

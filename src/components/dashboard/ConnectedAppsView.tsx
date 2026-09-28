@@ -518,18 +518,17 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
     };
     setActiveLinkedProduct(matchedProduct);
 
-    // Save association to localStorage
-    const linksKey = companyId ? `mansa_creator_app_links_${companyId}` : "mansa_creator_app_links";
-    try {
-      const saved = JSON.parse(localStorage.getItem(linksKey) || "[]");
-      const next = {
-        appId: app.id,
-        productIds: selectedProductIdsToLink,
-        updatedAt: new Date().toISOString(),
-      };
-      const withoutApp = Array.isArray(saved) ? saved.filter((i: any) => i.appId !== app.id) : [];
-      localStorage.setItem(linksKey, JSON.stringify([...withoutApp, next]));
-    } catch {}
+    // Les apps de contenu ne sont pas finalisées tant que leur contenu n'est pas ajouté.
+    // Telegram/Discord, eux, poursuivent vers leur écran de connexion dédié.
+    if (app.id === "telegram" || app.id === "discord") {
+      const linksKey = companyId ? `mansa_creator_app_links_${companyId}` : "mansa_creator_app_links";
+      try {
+        const saved = JSON.parse(localStorage.getItem(linksKey) || "[]");
+        const next = { appId: app.id, productIds: selectedProductIdsToLink, updatedAt: new Date().toISOString() };
+        const withoutApp = Array.isArray(saved) ? saved.filter((i: any) => i.appId !== app.id) : [];
+        localStorage.setItem(linksKey, JSON.stringify([...withoutApp, next]));
+      } catch {}
+    }
 
     setSelectedAppToInstall(null);
 

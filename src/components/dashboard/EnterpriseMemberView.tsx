@@ -409,6 +409,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           companyName: detail.companyName || detail.name || prev.companyName,
           companyBanner: detail.companyBanner || prev.companyBanner,
           companyLogo: detail.companyLogo || prev.companyLogo,
+          socialLinks: detail.socialLinks || prev.socialLinks,
         }));
       }
     };
@@ -451,6 +452,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     description: string;
     companyBanner: string;
     companyLogo: string;
+    socialLinks: Record<string, string>;
   }) => {
     // Strict ownership verification: block non-creators
     if (!isCompanyOwner) {
@@ -463,18 +465,21 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
       companyName: branding.name,
       companyBanner: branding.companyBanner,
       companyLogo: branding.companyLogo,
+      socialLinks: branding.socialLinks,
     });
     updateCompanyBranding(userKey, currentSub.companyId, {
       name: branding.name,
       description: branding.description,
       companyBanner: branding.companyBanner,
       companyLogo: branding.companyLogo,
+      socialLinks: branding.socialLinks,
     });
     setCurrentSub((prev) => ({
       ...prev,
       companyName: branding.name,
       companyBanner: branding.companyBanner,
       companyLogo: branding.companyLogo,
+      socialLinks: branding.socialLinks,
     }));
   };
 
@@ -734,6 +739,13 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   type PreviewMode = "admin" | "public" | "hidden" | `product:${string}`;
   const [previewMode, setPreviewMode] = useState<PreviewMode>("admin");
   const [isPreviewMenuOpen, setIsPreviewMenuOpen] = useState(false);
+  const isPublicClientPreview = isCompanyOwner && previewMode !== "admin";
+  const canManageCompany = isCompanyOwner && !isPublicClientPreview;
+  React.useEffect(() => {
+    if (!canManageCompany && activeTab === "applications") {
+      setActiveTab("accueil");
+    }
+  }, [canManageCompany, activeTab]);
   const selectedPreviewOfferId = previewMode.startsWith("product:")
     ? previewMode.slice("product:".length)
     : null;
@@ -1443,7 +1455,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           )}
         </div>
 
-        {isCompanyOwner && (
+        {canManageCompany && (
           <div className="relative">
             <button
               type="button"
@@ -1530,7 +1542,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           </div>
         )}
 
-        {!isCompanyOwner && (
+        {!canManageCompany && (
           <div className="rounded-xl border border-white/10 bg-[#14161b] p-1.5">
             <button
               type="button"
@@ -1585,7 +1597,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
         {/* Navigation Items (En haut) : Accueil, Assistance, etc. */}
         <nav className="space-y-1 text-xs font-medium">
           {/* Tableau de bord : visible uniquement pour le créateur propriétaire */}
-          {isCompanyOwner && (
+          {canManageCompany && (
             <button
               onClick={() => {
                 if (onOpenCreatorDashboard) {
@@ -1623,7 +1635,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           {/* Assistance : Ouvre l'assistance créateur si créateur, sinon l'espace support membre */}
           <button
             onClick={() => {
-              if (isCompanyOwner && onOpenCreatorAssistance) {
+              if (canManageCompany && onOpenCreatorAssistance) {
                 onOpenCreatorAssistance();
               } else {
                 setActiveTab("support");
@@ -1641,7 +1653,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           </button>
 
           {/* Ajouter une application : UNIQUEMENT pour le créateur */}
-          {isCompanyOwner && (
+          {canManageCompany && (
             <button
               onClick={() => {
                 if (onOpenCreatorApplications) {
@@ -1814,13 +1826,13 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                     }`}
                     title={`Mon Entreprise : ${comp.name}`}
                   >
-                    <div
-                      className={`size-full bg-gradient-to-br ${
-                        comp.colorGradient || "from-emerald-950 via-slate-900 to-black"
-                      } flex items-center justify-center text-[10px] font-black text-white font-mono`}
-                    >
-                      <span>{comp.logoInitials || comp.name.substring(0, 2).toUpperCase()}</span>
-                    </div>
+                    {comp.companyLogo ? (
+                      <img src={comp.companyLogo} alt={comp.name} className="size-full object-cover" />
+                    ) : (
+                      <div className={`size-full bg-gradient-to-br ${comp.colorGradient || "from-emerald-950 via-slate-900 to-black"} flex items-center justify-center text-[10px] font-black text-white font-mono`}>
+                        <span>{comp.logoInitials || comp.name.substring(0, 2).toUpperCase()}</span>
+                      </div>
+                    )}
                   </button>
 
                   <div className="absolute left-[72px] z-50 px-2.5 py-1 rounded-lg bg-[#181a22] text-xs font-semibold text-white border border-white/10 shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
@@ -1977,11 +1989,11 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
 
                   {/* Logo compact */}
                   <div
-                    onClick={() => isCompanyOwner && setIsBrandingModalOpen(true)}
+                    onClick={() => canManageCompany && setIsBrandingModalOpen(true)}
                     className={`relative size-11 sm:size-12 rounded-xl border border-white/15 bg-[#14161f] shadow-md overflow-hidden shrink-0 ${
-                      isCompanyOwner ? "cursor-pointer group" : "cursor-default"
+                      canManageCompany ? "cursor-pointer group" : "cursor-default"
                     }`}
-                    title={isCompanyOwner ? "Modifier le logo" : currentSub.companyName}
+                    title={canManageCompany ? "Modifier le logo" : currentSub.companyName}
                   >
                     {currentSub.companyLogo ? (
                       <img
@@ -1994,7 +2006,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                         {currentSub.companyInitials || currentSub.companyName.substring(0, 2).toUpperCase()}
                       </div>
                     )}
-                    {isCompanyOwner && (
+                    {canManageCompany && (
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Camera className="size-3.5 text-emerald-400" />
                       </div>
@@ -2019,7 +2031,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                 {/* Actions */}
                 <div className="flex items-center gap-2">
                   {/* Branding button pour créateur propriétaire */}
-                  {isCompanyOwner && (
+                  {canManageCompany && (
                     <button
                       onClick={() => setIsBrandingModalOpen(true)}
                       className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-emerald-400 transition-all cursor-pointer"
@@ -2146,7 +2158,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
 
                   {/* Bouton de configuration de la bannière */}
                   <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
-                    {isCompanyOwner && (
+                    {canManageCompany && (
                       <button
                         onClick={() => setIsBrandingModalOpen(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-lg transition-all cursor-pointer active:scale-95"
@@ -2198,17 +2210,17 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 -mt-12 sm:-mt-18 md:-mt-22 mb-4">
                 <div className="flex items-end gap-3 sm:gap-5">
                   <div
-                    onClick={() => isCompanyOwner && setIsBrandingModalOpen(true)}
+                    onClick={() => canManageCompany && setIsBrandingModalOpen(true)}
                     className={`relative size-24 sm:size-36 md:size-40 rounded-2xl sm:rounded-3xl border-4 border-[#0a0b0d] bg-[#14161f] shadow-2xl overflow-hidden shrink-0 ${
-                      isCompanyOwner ? "group cursor-pointer" : "cursor-default select-none"
+                      canManageCompany ? "group cursor-pointer" : "cursor-default select-none"
                     }`}
-                    title={isCompanyOwner ? "Cliquer pour configurer la photo de profil / logo et la bannière" : currentSub.companyName}
+                    title={canManageCompany ? "Cliquer pour configurer la photo de profil / logo et la bannière" : currentSub.companyName}
                   >
                     {currentSub.companyLogo ? (
                       <img
                         src={currentSub.companyLogo}
                         alt={currentSub.companyName}
-                        className={`size-full object-cover ${isCompanyOwner ? "group-hover:scale-105" : ""} transition-transform duration-300`}
+                        className={`size-full object-cover ${canManageCompany ? "group-hover:scale-105" : ""} transition-transform duration-300`}
                       />
                     ) : (
                       <div className="size-full bg-gradient-to-br from-indigo-950 via-slate-900 to-black flex items-center justify-center text-3xl sm:text-4xl font-black text-white">
@@ -2216,7 +2228,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                       </div>
                     )}
                     {/* Hover overlay with Camera to edit - Uniquement pour le créateur propriétaire */}
-                    {isCompanyOwner && (
+                    {canManageCompany && (
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 select-none">
                         <Camera className="size-6 text-emerald-400" />
                         <span className="text-[11px] font-bold text-center px-1">Modifier logo</span>
@@ -2458,6 +2470,16 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               {/* VUE CONTENU : ONGLET ACCUEIL (Flux de publications ou d'actualités propre à l'entreprise) */}
               {companyTab === "accueil" && (
                 <div className="max-w-4xl space-y-6 animate-in fade-in duration-150">
+                  {Object.values(currentSub.socialLinks || {}).some(Boolean) && (
+                    <div className="rounded-2xl border border-white/[0.09] bg-[#111318] p-4 shadow-lg">
+                      <div className="flex items-center gap-2 mb-3"><ExternalLink className="size-4 text-emerald-400" /><span className="text-xs font-bold text-white">Retrouvez-nous en ligne</span></div>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(currentSub.socialLinks || {}).filter(([, url]) => url).map(([key, url]) => (
+                          <a key={key} href={url} target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-zinc-200 hover:border-emerald-400/50 hover:text-emerald-300 transition-colors">{key === "website" ? "Site web" : key === "twitter" ? "X / Twitter" : key[0].toUpperCase() + key.slice(1)}</a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {/* Section Fil d'actualité & Publications */}
                   <div id="company-newsfeed" className="pt-2">
                     <div className="flex items-center justify-between mb-4">
@@ -2471,7 +2493,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   </div>
 
                   {/* Formulaire de publication réservé au créateur de l'entreprise */}
-                  {isCompanyOwner && (
+                  {canManageCompany && (
                     <div className="rounded-2xl border border-white/[0.09] bg-[#111318] p-5 space-y-3 shadow-lg">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-white flex items-center gap-2">
@@ -2607,7 +2629,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                             </div>
 
                             {/* Bouton de suppression réservé au créateur */}
-                            {isCompanyOwner && (
+                            {canManageCompany && (
                               <button
                                 onClick={() => handleDeletePost(post.id)}
                                 className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
@@ -3076,19 +3098,36 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-              <ConnectedAppsView
-                lang={lang}
-                initialSubView="telegram"
-                companyName={subscription.companyName}
-                companyId={companyId}
-                availableProducts={enterpriseOffers.map((offer) => ({
-                  id: offer.id,
-                  title: offer.title,
-                  priceDisplay: offer.priceDisplay,
-                  subscribersCount: offer.subscribersCount || 0,
-                }))}
-                onBackToDashboard={() => setActiveTab("accueil")}
-              />
+              {canManageCompany ? (
+                <ConnectedAppsView
+                  lang={lang}
+                  initialSubView="telegram"
+                  companyName={subscription.companyName}
+                  companyId={companyId}
+                  availableProducts={enterpriseOffers.map((offer) => ({
+                    id: offer.id,
+                    title: offer.title,
+                    priceDisplay: offer.priceDisplay,
+                    subscribersCount: offer.subscribersCount || 0,
+                  }))}
+                  onBackToDashboard={() => setActiveTab("accueil")}
+                />
+              ) : (
+                <div className="max-w-3xl mx-auto w-full space-y-4">
+                  <div className="rounded-2xl border border-[#229ED9]/30 bg-[#11151b] p-5">
+                    <h2 className="text-base font-bold text-white flex items-center gap-2"><TelegramIcon className="size-5" /> Vos accès Telegram</h2>
+                    <p className="mt-1 text-xs text-zinc-400">Seuls les canaux inclus dans vos offres sont visibles ici.</p>
+                  </div>
+                  {authorizedTelegramChannels.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-[#111318] p-6 text-center text-xs text-zinc-400">Aucun canal Telegram n’est débloqué avec votre offre actuelle.</div>
+                  ) : authorizedTelegramChannels.map((channel) => (
+                    <div key={channel.id} className="rounded-2xl border border-white/10 bg-[#111318] p-4 flex items-center justify-between gap-3">
+                      <div><div className="text-sm font-bold text-white">{channel.name}</div><div className="text-[11px] text-zinc-400">{channel.description || "Canal Telegram privé"}</div></div>
+                      {channel.inviteLink ? <a href={channel.inviteLink} target="_blank" rel="noreferrer" className="rounded-lg bg-[#229ED9] px-3 py-2 text-xs font-bold text-white">Ouvrir</a> : <span className="text-[11px] text-zinc-500">Lien indisponible</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -3169,19 +3208,36 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-              <ConnectedAppsView
-                lang={lang}
-                initialSubView="discord"
-                companyName={subscription.companyName}
-                companyId={companyId}
-                availableProducts={enterpriseOffers.map((offer) => ({
-                  id: offer.id,
-                  title: offer.title,
-                  priceDisplay: offer.priceDisplay,
-                  subscribersCount: offer.subscribersCount || 0,
-                }))}
-                onBackToDashboard={() => setActiveTab("accueil")}
-              />
+              {canManageCompany ? (
+                <ConnectedAppsView
+                  lang={lang}
+                  initialSubView="discord"
+                  companyName={subscription.companyName}
+                  companyId={companyId}
+                  availableProducts={enterpriseOffers.map((offer) => ({
+                    id: offer.id,
+                    title: offer.title,
+                    priceDisplay: offer.priceDisplay,
+                    subscribersCount: offer.subscribersCount || 0,
+                  }))}
+                  onBackToDashboard={() => setActiveTab("accueil")}
+                />
+              ) : (
+                <div className="max-w-3xl mx-auto w-full space-y-4">
+                  <div className="rounded-2xl border border-[#5865F2]/30 bg-[#11151b] p-5">
+                    <h2 className="text-base font-bold text-white flex items-center gap-2"><DiscordIcon className="size-5" /> Vos accès Discord</h2>
+                    <p className="mt-1 text-xs text-zinc-400">Seuls les serveurs inclus dans vos offres sont visibles ici.</p>
+                  </div>
+                  {authorizedDiscordChannels.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-[#111318] p-6 text-center text-xs text-zinc-400">Aucun serveur Discord n’est débloqué avec votre offre actuelle.</div>
+                  ) : authorizedDiscordChannels.map((channel) => (
+                    <div key={channel.id} className="rounded-2xl border border-white/10 bg-[#111318] p-4 flex items-center justify-between gap-3">
+                      <div><div className="text-sm font-bold text-white">{channel.name}</div><div className="text-[11px] text-zinc-400">{channel.description || "Serveur Discord privé"}</div></div>
+                      {channel.inviteLink ? <a href={channel.inviteLink} target="_blank" rel="noreferrer" className="rounded-lg bg-[#5865F2] px-3 py-2 text-xs font-bold text-white">Ouvrir</a> : <span className="text-[11px] text-zinc-500">Lien indisponible</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -3189,7 +3245,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
       </div>
 
       {/* Creator-only publication composer */}
-      {isCompanyOwner && companyTab === "accueil" && (
+      {canManageCompany && companyTab === "accueil" && (
         <>
           <button
             type="button"
@@ -3356,7 +3412,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
       )}
 
       {/* Enterprise Branding Configuration Modal - Restreint exclusivement au créateur propriétaire */}
-      {isCompanyOwner && (
+      {canManageCompany && (
         <EnterpriseBrandingModal
           isOpen={isBrandingModalOpen}
           onClose={() => setIsBrandingModalOpen(false)}
@@ -3366,6 +3422,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             description: currentSub.productName,
             companyBanner: currentSub.companyBanner,
             companyLogo: currentSub.companyLogo,
+            socialLinks: currentSub.socialLinks,
           }}
           onSave={handleSaveBranding}
           lang={lang}

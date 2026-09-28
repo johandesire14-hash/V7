@@ -450,14 +450,8 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
         {/* TOP BAR: Matches Creator Storefront Preview */}
         <div className="bg-[#14161d] border-b border-white/10 px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleJoinCompanyFree}
-              disabled={isProcessing}
-              className="group flex items-center gap-3 text-left p-1.5 -m-1.5 rounded-2xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/10"
-              title={`Cliquer pour rejoindre ${offer.companyName} en tant que membre sans cette offre`}
-            >
-              <div className="size-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-800 text-white flex items-center justify-center font-black text-sm border border-emerald-400/30 shadow-sm overflow-hidden group-hover:scale-105 group-hover:border-emerald-400 transition-all shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-800 text-white flex items-center justify-center font-black text-sm border border-emerald-400/30 shadow-sm overflow-hidden shrink-0">
                 {offer.companyLogo ? (
                   <img src={offer.companyLogo} alt={offer.companyName} className="size-full object-cover" />
                 ) : (
@@ -465,20 +459,9 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                 )}
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                    {offer.companyName}
-                    <span className="text-[10px] font-medium text-emerald-400/90 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 group-hover:bg-emerald-500/20">
-                      Cliquer pour rejoindre l'entreprise
-                    </span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 group-hover:text-zinc-200 transition-colors">
-                  <UserPlus className="size-3 text-emerald-400" />
-                  <span>Rejoindre sans payer d'offre (Accès Gratuit : Accueil & Support)</span>
-                </div>
+                <span className="text-sm font-bold text-white">{offer.companyName}</span>
               </div>
-            </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2.5 text-xs text-zinc-400">
@@ -812,40 +795,6 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                   </div>
                 )}
 
-                {/* Applications débloquées avec ce produit */}
-                {resolvedApps.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 space-y-2.5">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300">
-                      <span className="flex items-center gap-1.5 text-white">
-                        <CheckCircle2 className="size-3.5 text-emerald-400" />
-                        <span>Inclus avec cet achat :</span>
-                      </span>
-                      <span className="text-emerald-400 font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                        {resolvedApps.length} {resolvedApps.length > 1 ? "accès" : "accès"}
-                      </span>
-                    </div>
-                    <div className="space-y-1.5">
-                      {resolvedApps.map((appKey) => {
-                        const item = getAppDetail(appKey);
-                        return (
-                          <div
-                            key={appKey}
-                            className="flex items-center justify-between text-xs text-zinc-300 bg-white/[0.02] px-2.5 py-1.5 rounded-xl border border-white/5"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="size-1.5 rounded-full bg-emerald-400 shrink-0" />
-                              <span className="font-medium text-white truncate">{item.title}</span>
-                            </div>
-                            <span className="text-[10px] font-mono text-emerald-400 shrink-0 font-semibold">
-                              Débloqué
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
                 {/* Buyer Information & Action Handling based on status */}
                 {isAlreadyPurchased ? (
                   <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-4">
@@ -1016,26 +965,6 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                         )}
                     </div>
 
-                    {/* Option to join company without paying this offer */}
-                    {offer.pricingType !== "free" && (
-                      <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-2">
-                        <div className="text-xs text-zinc-300 font-medium">
-                          Ou rejoignez l'entreprise en tant que membre simple
-                        </div>
-                        <button
-                          type="button"
-                          disabled={isProcessing}
-                          onClick={handleJoinCompanyFree}
-                          className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs font-semibold border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40"
-                        >
-                          <UserPlus className="size-3.5 text-emerald-400" />
-                          <span>Rejoindre {offer.companyName} sans offre</span>
-                        </button>
-                        <p className="text-[10px] text-zinc-500 leading-tight">
-                          Accès immédiat à la page d'accueil et au support. L'offre {offer.title} et les canaux VIP restent verrouillés.
-                        </p>
-                      </div>
-                    )}
                   </>
                 )}
 
