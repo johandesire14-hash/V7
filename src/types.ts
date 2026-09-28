@@ -252,6 +252,9 @@ export interface CreatorPlatformOffer {
     price: number;
     billing: string;
   }[];
+  // Détails utilisés par la Vue membre et la page produit avant paiement.
+  courseModules?: Array<{ id: string; title: string; duration: string }>;
+  digitalFiles?: Array<{ id: string; name: string; size: string; type?: string; downloadUrl?: string }>;
 }
 
 export interface EnterpriseSubscription {

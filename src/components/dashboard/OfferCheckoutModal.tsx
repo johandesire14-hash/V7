@@ -644,11 +644,11 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                     <div className="flex items-center gap-2">
                       <GraduationCap className="size-4 text-indigo-400" />
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Programme de la formation
+                        Modules de formation ({((offer as any).courseModules?.length || offer.courses?.length || 1)})
                       </h3>
                     </div>
                     <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                      {((offer as any).courseModules?.length || offer.courses?.length || 1)} module(s)
+                      Cursus
                     </span>
                   </div>
 
@@ -678,11 +678,11 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                     <div className="flex items-center gap-2">
                       <FileText className="size-4 text-emerald-400" />
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Documents et Fichiers à Télécharger
+                        Fichiers inclus ({((offer as any).digitalFiles?.length || offer.ebooks?.length || 1)})
                       </h3>
                     </div>
                     <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                      {((offer as any).digitalFiles?.length || offer.ebooks?.length || 1)} fichier(s)
+                      Téléchargement immédiat
                     </span>
                   </div>
 

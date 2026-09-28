@@ -609,6 +609,8 @@ export function convertProjectToPlatformOffer(
             },
           ]
         : []),
+    courseModules: project.courseModules || [],
+    digitalFiles: project.digitalFiles || [],
     courses:
       project.courses ||
       (apps.some((a: string) =>

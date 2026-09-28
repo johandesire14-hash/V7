@@ -412,6 +412,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             ctaText: "Rejoindre",
             companyId: p.companyId || "",
             companyName: p.companyName || "",
+            pricingOptions: (p as any).pricingOptions || [],
+            digitalFiles: (p as any).digitalFiles || [],
+            courseModules: (p as any).courseModules || [],
           };
         })
       );
