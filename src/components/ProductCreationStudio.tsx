@@ -142,14 +142,6 @@ interface ProductCreationStudioProps {
   companyName?: string;
 }
 
-const STOCK_PHOTOS = [
-  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80",
-];
 
 export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   onClose,
@@ -530,16 +522,13 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
     initialData?.imageUrl || null
   );
   const [bannerImage, setBannerImage] = useState<string | null>(initialData?.bannerUrl || null);
-  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isCheckoutPreviewOpen, setIsCheckoutPreviewOpen] = useState(false);
   const bannerImageFileInputRef = useRef<HTMLInputElement | null>(null);
   const reminderImage = bannerImage || productImage;
 
-  const handleBannerImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = "";
-    if (!file) return;
+  const productImageFileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const processImageUpload = (file: File, onImageLoaded: (image: string) => void) => {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result !== "string") return;
@@ -547,7 +536,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
       const image = new Image();
       image.onload = () => {
         if (!image.naturalWidth || !image.naturalHeight) {
-          setBannerImage(source);
+          onImageLoaded(source);
           return;
         }
         const scale = Math.min(1, 1280 / image.naturalWidth, 720 / image.naturalHeight);
@@ -558,16 +547,29 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         canvas.height = height;
         const context = canvas.getContext("2d");
         if (!context) {
-          setBannerImage(source);
+          onImageLoaded(source);
           return;
         }
         context.drawImage(image, 0, 0, width, height);
-        setBannerImage(canvas.toDataURL("image/jpeg", 0.82));
+        onImageLoaded(canvas.toDataURL("image/jpeg", 0.82));
       };
-      image.onerror = () => setBannerImage(source);
+      image.onerror = () => onImageLoaded(source);
       image.src = source;
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleBannerImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (file) processImageUpload(file, (image) => setBannerImage(image));
+  };
+
+  const handleProductImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    processImageUpload(file, (image) => setProductImage(image));
   };
 
   // FAQs (Fully editable from the preview & form)
@@ -1928,13 +1930,29 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                   
                   {/* Hero Media Showcase */}
                   <div className="relative rounded-2xl border border-white/10 bg-[#151720] overflow-hidden group">
+                    <input
+                      ref={productImageFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProductImageUpload}
+                      className="hidden"
+                    />
                     {productImage ? (
                       <div className={`relative ${viewMode === "mobile" ? "h-48" : "h-72"} w-full`}>
-                        <img src={productImage} alt="Product" className="size-full object-cover" />
+                        <img src={productImage} alt={productName} className="size-full object-cover" />
                         <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold text-[#00D26A] flex items-center gap-1 border border-white/10">
                           <Zap className="size-3" />
                           <span>Accès instantané 24/7</span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => productImageFileInputRef.current?.click()}
+                          className="absolute bottom-3 right-3 rounded-lg bg-black/75 hover:bg-black/90 border border-white/15 px-3 py-2 text-xs font-bold text-white flex items-center gap-2 transition-colors"
+                          aria-label="Modifier l’image bannière du produit"
+                        >
+                          <Upload className="size-3.5" />
+                          Modifier l’image
+                        </button>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center p-10 text-center space-y-3">
@@ -1946,15 +1964,16 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                             Visuel principal de votre produit
                           </h4>
                           <p className="text-xs text-zinc-400 font-light">
-                            Uploadez une image percutante ou choisissez une photo gratuite.
+                            Ajoutez l’image de votre choix pour illustrer votre produit.
                           </p>
                         </div>
                         <button
                           type="button"
-                          onClick={() => setIsStockModalOpen(true)}
-                          className="mansa-btn-green text-xs px-4 py-2 font-bold cursor-pointer"
+                          onClick={() => productImageFileInputRef.current?.click()}
+                          className="mansa-btn-green text-xs px-4 py-2 font-bold cursor-pointer flex items-center gap-2"
                         >
-                          Choisir une image de stock
+                          <Upload className="size-3.5" />
+                          Ajouter une image
                         </button>
                       </div>
                     )}
@@ -1984,10 +2003,10 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                           let appIcon = renderAppIcon(app, "size-4");
 
                           if (app === "Telegram") {
-                            appTitle = "Canal Telegram VIP";
+                            appTitle = "Telegram";
                             appDesc = "Accès au canal privé d'alertes & diffusion Telegram.";
                           } else if (app === "Discord") {
-                            appTitle = "Serveur Discord VIP";
+                            appTitle = "Discord";
                             appDesc = "Salons VIP et gestion automatique des rôles.";
                           } else if (app === "Fichiers" || app === "Fichiers & Documents") {
                             appTitle = "Fichiers & Documents";
@@ -2265,44 +2284,6 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         selectedPlanId={selectedPlanId}
         onPlanChange={setSelectedPlanId}
       />
-
-      {/* STOCK PHOTOS MODAL */}
-      <ModalOverlay
-        isOpen={isStockModalOpen}
-        onClose={() => setIsStockModalOpen(false)}
-        contentClassName="max-w-xl mx-auto"
-      >
-        <div className="w-full rounded-2xl border border-white/10 bg-[#121316] p-6 shadow-2xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <h3 className="text-sm font-bold text-white">Sélectionner une photo de stock</h3>
-            <button
-              onClick={() => setIsStockModalOpen(false)}
-              className="text-zinc-400 hover:text-white cursor-pointer"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-1">
-            {STOCK_PHOTOS.map((url, idx) => (
-              <div
-                key={idx}
-                onClick={() => {
-                  setProductImage(url);
-                  setBannerImage(url);
-                  setIsStockModalOpen(false);
-                }}
-                className="relative h-28 rounded-xl overflow-hidden border border-white/10 hover:border-[#00D26A] cursor-pointer group transition-all"
-              >
-                <img src={url} alt="Stock" className="size-full object-cover group-hover:scale-105 transition-transform" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs font-bold text-white">
-                  Choisir
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </ModalOverlay>
 
       {/* CREATOR BOT SETUP MODAL */}
       <CreatorBotSetupModal

@@ -152,7 +152,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     const key = appKey.toLowerCase();
     if (key.includes("telegram")) {
       return {
-        title: "Canal Telegram VIP",
+        title: "Telegram",
         description:
           offer.telegramChannels?.[0]?.description ||
           "Alertes privées, signaux et canal de diffusion officiel réservé aux membres.",
@@ -162,7 +162,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     }
     if (key.includes("discord")) {
       return {
-        title: "Serveur Discord VIP",
+        title: "Discord",
         description:
           offer.discordChannels?.[0]?.description ||
           "Salons textuels et vocaux VIP avec attribution automatique des rôles.",
