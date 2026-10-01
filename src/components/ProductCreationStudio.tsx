@@ -188,7 +188,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   );
 
   // View mode switcher: desktop / mobile / member
-  const [viewMode, setViewMode] = useState<"desktop" | "mobile" | "member">("mobile");
+  const [viewMode, setViewMode] = useState<"desktop" | "mobile" | "member">("desktop");
 
   // Preview write / preview tab state for description editor
   const [descTab, setDescTab] = useState<"write" | "preview">("write");
@@ -980,12 +980,14 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
           >
             <X className="size-5" />
           </button>
-          <span className="text-sm font-bold text-white">Modifier le produit</span>
+          <span className="text-sm font-bold text-white">{initialData?.id ? "Modifier le produit" : "Ajouter un produit"}</span>
         </div>
 
         {/* Center: Device Switcher */}
         <div className="flex items-center rounded-xl border border-white/10 bg-[#17181c] p-1 text-xs">
           <button
+            type="button"
+            aria-pressed={viewMode === "desktop"}
             onClick={() => setViewMode("desktop")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer ${
               viewMode === "desktop"
@@ -998,6 +1000,8 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
           </button>
 
           <button
+            type="button"
+            aria-pressed={viewMode === "mobile"}
             onClick={() => setViewMode("mobile")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer ${
               viewMode === "mobile"
@@ -1010,6 +1014,8 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
           </button>
 
           <button
+            type="button"
+            aria-pressed={viewMode === "member"}
             onClick={() => setViewMode("member")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer ${
               viewMode === "member"
@@ -1017,7 +1023,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
-            <Users className="size-3.5 text-zinc-400" />
+            <Users className={`size-3.5 ${viewMode === "member" ? "text-[#00D26A]" : "text-zinc-400"}`} />
             <span>Vue membre</span>
           </button>
         </div>
@@ -1039,7 +1045,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
             className="mansa-btn-green text-xs px-4 py-2 font-bold cursor-pointer flex items-center gap-1.5 shadow-lg"
           >
             <Check className="size-3.5" />
-            <span>Enregistrer le produit</span>
+            <span>{initialData?.id ? "Enregistrer les modifications" : "Créer un produit"}</span>
           </button>
         </div>
       </header>
@@ -1815,7 +1821,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
               className="mansa-btn-green w-full py-3.5 text-sm font-bold cursor-pointer flex items-center justify-center gap-2"
             >
               <CheckCircle2 className="size-4" />
-              <span>Enregistrer le produit</span>
+              <span>{initialData?.id ? "Enregistrer les modifications" : "Créer un produit"}</span>
             </button>
 
             {initialData?.id && onDelete && (
@@ -1837,333 +1843,17 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         {/* ========================================================================= */}
         <div className="flex-1 min-h-0 h-full overflow-y-auto overflow-x-hidden bg-[#07080a] p-4 sm:p-8 pb-36 flex flex-col items-center justify-start">
           
+          {/* ONE CUSTOMER-FACING PRODUCT PAGE, ADAPTED TO THE SELECTED PREVIEW WIDTH */}
           {/* ======================================================================= */}
-          {/* 1. MOBILE PREVIEW FRAME (EXACT MATCH REQUESTED BY USER - NEVER CHANGED) */}
-          {/* ======================================================================= */}
-          {viewMode === "mobile" && (
-            <div className="w-full max-w-[420px] rounded-[36px] border-[6px] border-[#1f2128] bg-[#0c0d10] p-4 sm:p-5 shadow-2xl space-y-5 my-2 sm:my-4 shrink-0">
-              
-              {/* Top enterprise bar: icon + Enterprise Name + Paramètres */}
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-                <div className="flex items-center gap-2">
-                  <div className="size-7 rounded-lg bg-[#00D26A]/20 text-[#00D26A] flex items-center justify-center font-bold text-xs border border-[#00D26A]/30">
-                    {productType === "ebook" ? "📖" : productType === "membership" ? "👑" : "📈"}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-white text-sm" title="Entreprise créatrice (non modifiable)">
-                      {effectiveCompanyName}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsProductSettingsOpen(!isProductSettingsOpen)}
-                  className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white cursor-pointer px-2 py-1 rounded-lg hover:bg-white/5"
-                >
-                  <SettingsIcon className="size-3.5" />
-                  <span>Paramètres</span>
-                </button>
-              </div>
-
-              {/* Media Card: Video / Photo upload box */}
-              <div className="relative rounded-2xl border border-white/10 bg-[#14151a] overflow-hidden group">
-                {productImage ? (
-                  <div className="relative h-56 w-full">
-                    <img src={productImage} alt="Product" className="size-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => setIsStockModalOpen(true)}
-                        className="px-3 py-1.5 rounded-lg bg-white/20 text-xs font-semibold text-white hover:bg-white/30 backdrop-blur-sm cursor-pointer"
-                      >
-                        Changer
-                      </button>
-                      <button
-                        onClick={() => setProductImage(null)}
-                        className="p-1.5 rounded-lg bg-red-500 text-white cursor-pointer"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-6 text-center space-y-2.5">
-                    <div className="size-10 rounded-full bg-[#1e2028] flex items-center justify-center text-zinc-400">
-                      <ImageIcon className="size-5 text-[#00D26A]" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-white">
-                        Ajoutez votre première vidéo ou photo de produit
-                      </h4>
-                      <p className="text-[10px] text-zinc-400 font-light">
-                        Cela devrait illustrer quelque chose à propos du produit.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 pt-1">
-                      <label className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-semibold cursor-pointer">
-                        <Upload className="size-3" />
-                        <span>Télécharger</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) setProductImage(URL.createObjectURL(file));
-                          }}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setIsStockModalOpen(true)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-white/10 bg-[#1c1e26] hover:bg-[#252834] text-xs font-semibold text-zinc-300 cursor-pointer"
-                      >
-                        <ImageIcon className="size-3" />
-                        <span>Photos de stock gratuites</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Offer Title (Directly Editable & Synced with left form!) */}
-              <div className="space-y-1">
-                <input
-                  type="text"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  placeholder="Nom de l'offre..."
-                  className="w-full bg-transparent text-lg sm:text-xl font-black text-white outline-none border-b border-transparent focus:border-[#00D26A] pb-1 hover:border-white/20 transition-colors"
-                  title="Modifier le nom de l'offre"
-                />
-
-                {/* Price Display */}
-                <div className="text-sm font-bold text-white font-mono">
-                  {pricingType === "free"
-                    ? "Gratuit"
-                    : `${priceAmount} ${currencyConfig.symbol} / ${billingCycle === "monthly" ? "mois" : billingCycle === "yearly" ? "an" : "paiement unique"}`}
-                </div>
-              </div>
-
-              {/* Pricing Options Selector (Interactive) */}
-              <div className="space-y-2">
-                {pricingOptions.map((opt) => (
-                  <div
-                    key={opt.id}
-                    onClick={() => setSelectedPlanId(opt.id)}
-                    className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs font-semibold cursor-pointer transition-all ${
-                      selectedPlanId === opt.id
-                        ? "border-[#00D26A] bg-[#16221c] text-white shadow-sm"
-                        : "border-white/10 bg-[#14161d] text-zinc-300 hover:border-white/20"
-                    }`}
-                  >
-                    <span>{opt.name}</span>
-                    <div className="flex items-center gap-2 text-zinc-400">
-                      <span className="text-[11px] font-mono">👤 {opt.subscribersCount}</span>
-                      <span className="text-zinc-500 font-bold">›</span>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add pricing option inside preview */}
-                <button
-                  type="button"
-                  onClick={() => setIsAddingPricingOption(true)}
-                  className="w-full py-2.5 rounded-2xl border border-dashed border-white/15 bg-white/5 hover:bg-white/10 text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="size-3.5 text-[#00D26A]" />
-                  <span>+ Nouvelle option de tarification</span>
-                </button>
-              </div>
-
-              {/* Applications incluses avec ce produit */}
-              {effectivePreviewApps.length > 0 && (
-                <div className="p-3.5 rounded-2xl bg-[#14161d] border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-white">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="size-3.5 text-[#00D26A]" />
-                      <span>Applications incluses ({effectivePreviewApps.length})</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-[#00D26A]">Inclus</span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-1.5">
-                    {effectivePreviewApps.map((app) => (
-                      <div key={app} className="flex items-center justify-between p-2 rounded-xl bg-[#1c1e28] text-[11px]">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {renderAppIcon(app, "size-3.5")}
-                          <span className="font-semibold text-white truncate">{app}</span>
-                        </div>
-                        <span className="text-[10px] text-[#00D26A] font-bold">Débloqué</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Programme de formation si modules de cours */}
-              {courseModules.length > 0 &&
-                (effectivePreviewApps.includes("Cours & formations") || productType === "course") && (
-                <div className="p-3.5 rounded-2xl bg-[#14161d] border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-white">
-                    <span className="flex items-center gap-1.5">
-                      <GraduationCap className="size-3.5 text-indigo-400" />
-                      <span>Modules de formation ({courseModules.length})</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-indigo-400">Cursus</span>
-                  </div>
-                  <div className="space-y-1">
-                    {courseModules.map((mod, idx) => (
-                      <div key={mod.id} className="flex items-center justify-between p-2 rounded-xl bg-[#1c1e28] text-[11px]">
-                        <span className="font-medium text-white truncate">{idx + 1}. {mod.title}</span>
-                        <span className="text-zinc-400 font-mono text-[10px]">{mod.duration}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Fichiers inclus */}
-              {digitalFiles.length > 0 &&
-                (effectivePreviewApps.includes("Fichiers") ||
-                  productType === "ebook" ||
-                  productType === "digital") && (
-                <div className="p-3.5 rounded-2xl bg-[#14161d] border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-white">
-                    <span className="flex items-center gap-1.5">
-                      <Download className="size-3.5 text-[#00D26A]" />
-                      <span>Fichiers inclus ({digitalFiles.length})</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-zinc-400">Téléchargement immédiat</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {digitalFiles.map((file) => {
-                      const isAudioFile = file.isAudio || /\.(mp3|wav|ogg|flac|m4a)$/i.test(file.name);
-                      return (
-                        <div key={file.id} className="p-2.5 rounded-xl bg-[#1c1e28] text-[11px] space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="truncate max-w-[180px] text-zinc-200 font-medium flex items-center gap-1.5">
-                              {isAudioFile ? <Music className="size-3 text-[#00D26A]" /> : <span>📄</span>}
-                              {file.name}
-                            </span>
-                            <span className="text-zinc-400 font-mono text-[10px]">{file.size}</span>
-                          </div>
-                          {isAudioFile && (
-                            <AudioPreview30sPlayer
-                              title={file.name}
-                              artist={storeName || "Créateur"}
-                              variant="compact"
-                              maxSeconds={file.audioPreviewSeconds || 30}
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Big CTA Button (e.g. Rejoindre maintenant) */}
-              <button
-                type="button"
-                onClick={handleFinalSubmit}
-                className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer"
-              >
-                {ctaButtonText || "Rejoindre maintenant"}
-              </button>
-
-              {/* Description Block with [Écrire] / [Aperçu] tabs */}
-              <div className="space-y-2 pt-2 border-t border-white/[0.08]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-zinc-300">À propos du produit</span>
-                  <div className="flex items-center rounded-lg bg-[#181a22] border border-white/10 p-0.5 text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => setDescTab("write")}
-                      className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-all ${
-                        descTab === "write" ? "bg-[#282b36] text-white" : "text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      Écrire
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDescTab("preview")}
-                      className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-all ${
-                        descTab === "preview" ? "bg-[#282b36] text-white" : "text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      Aperçu
-                    </button>
-                  </div>
-                </div>
-
-                {descTab === "write" ? (
-                  <textarea
-                    value={productDescription}
-                    onChange={(e) => setProductDescription(e.target.value)}
-                    rows={4}
-                    placeholder="Écrivez la description détaillée de votre offre..."
-                    className="w-full rounded-2xl border border-white/10 bg-[#14161d] p-3 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:border-[#00D26A] leading-relaxed resize-none"
-                  />
-                ) : (
-                  <div className="p-3.5 rounded-2xl border border-white/10 bg-[#14161d] text-xs text-zinc-300 leading-relaxed font-light whitespace-pre-wrap">
-                    {productDescription || "Aucune description fournie pour le moment."}
-                  </div>
-                )}
-              </div>
-
-              {/* Questions fréquemment posées (FAQ Section inside Preview) */}
-              <div className="space-y-2.5 pt-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-white">Questions fréquemment posées</h4>
-                </div>
-
-                <div className="space-y-2">
-                  {faqs.map((faq) => {
-                    const isExpanded = expandedFaqId === faq.id;
-                    return (
-                      <div
-                        key={faq.id}
-                        className="rounded-2xl border border-white/10 bg-[#14161d] p-3 space-y-1.5 transition-all"
-                      >
-                        <div
-                          onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                          className="flex items-center justify-between cursor-pointer text-xs font-semibold text-white"
-                        >
-                          <span>{faq.q}</span>
-                          <span className="text-zinc-500 font-bold text-sm">{isExpanded ? "−" : "+"}</span>
-                        </div>
-                        {isExpanded && (
-                          <div className="text-[11px] text-zinc-400 pt-1 border-t border-white/5 leading-relaxed font-light">
-                            {faq.a}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* Add FAQ inside preview */}
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingFaq(true)}
-                    className="w-full py-3 rounded-2xl border border-white/10 bg-[#14161d] hover:bg-[#1c1e28] text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center justify-between px-4"
-                  >
-                    <span>Ajouter FAQ</span>
-                    <Plus className="size-4 text-zinc-400" />
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* ======================================================================= */}
-          {/* 2. TRUE DESKTOP PREVIEW LAYOUT (FIXED: WIDE STOREFRONT WITH SIDEBAR)   */}
-          {/* ======================================================================= */}
-          {viewMode === "desktop" && (
-            <div className="w-full max-w-5xl rounded-2xl border border-white/15 bg-[#0e1015] shadow-2xl overflow-hidden my-2 sm:my-6 shrink-0 animate-in fade-in duration-200">
+          {(viewMode === "desktop" || viewMode === "mobile" || viewMode === "member") && (
+            <div className={`w-full ${
+              viewMode === "mobile"
+                ? "max-w-[390px] rounded-2xl border border-white/15 bg-[#0e1015] shadow-xl"
+                : "max-w-5xl rounded-2xl border border-white/15 bg-[#0e1015] shadow-2xl"
+            } overflow-hidden my-2 sm:my-6 shrink-0 animate-in fade-in duration-200`}>
               
               {/* Desktop Store Top Bar */}
-              <div className="bg-[#14161d] border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
+              <div className={`bg-[#14161d] border-b border-white/10 ${viewMode === "mobile" ? "px-4 py-3 gap-y-2" : "px-6 py-3.5"} flex flex-wrap items-center justify-between`}>
                 <div className="flex items-center gap-3">
                   <div className="size-8 rounded-lg bg-[#00D26A]/20 text-[#00D26A] flex items-center justify-center font-bold text-sm border border-[#00D26A]/30">
                     {productType === "ebook" ? "📖" : productType === "membership" ? "👑" : "📈"}
@@ -2187,15 +1877,15 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
               </div>
 
               {/* Desktop 2-Column Storefront */}
-              <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className={`grid ${viewMode === "mobile" ? "grid-cols-1 gap-5 p-4" : "grid-cols-1 lg:grid-cols-12 gap-8 p-6 sm:p-8"}`}>
                 
                 {/* LEFT MAIN CONTENT (8 COLS) */}
-                <div className="lg:col-span-7 space-y-6">
+                <div className={viewMode === "mobile" ? "space-y-5" : "lg:col-span-7 space-y-6"}>
                   
                   {/* Hero Media Showcase */}
                   <div className="relative rounded-2xl border border-white/10 bg-[#151720] overflow-hidden group">
                     {productImage ? (
-                      <div className="relative h-72 w-full">
+                      <div className={`relative ${viewMode === "mobile" ? "h-48" : "h-72"} w-full`}>
                         <img src={productImage} alt="Product" className="size-full object-cover" />
                         <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold text-[#00D26A] flex items-center gap-1 border border-white/10">
                           <Zap className="size-3" />
@@ -2246,7 +1936,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className={`grid ${viewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-2.5`}>
                         {effectivePreviewApps.map((app) => {
                           let appTitle = app;
                           let appDesc = "Accès inclus dès validation.";
@@ -2427,8 +2117,8 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                 </div>
 
                 {/* RIGHT STICKY SIDEBAR (5 COLS) - CHECKOUT & PRICING CARD */}
-                <div className="lg:col-span-5 space-y-5">
-                  <div className="sticky top-4 rounded-3xl border border-white/15 bg-[#14161f] p-6 shadow-2xl space-y-5">
+                <div className={viewMode === "mobile" ? "space-y-5" : "lg:col-span-5 space-y-5"}>
+                  <div className={`${viewMode === "mobile" ? "" : "sticky top-4"} rounded-3xl border border-white/15 bg-[#14161f] ${viewMode === "mobile" ? "p-4" : "p-6"} shadow-2xl space-y-5`}>
                     
                     {/* Price Header */}
                     <div className="space-y-1 pb-3 border-b border-white/10">
@@ -2541,83 +2231,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
             </div>
           )}
 
-          {/* ======================================================================= */}
-          {/* 3. MEMBER VIEW: HOW BUYERS SEE CONTENT AFTER PURCHASE                   */}
-          {/* ======================================================================= */}
-          {viewMode === "member" && (
-            <div className="w-full max-w-2xl rounded-3xl border border-[#00D26A]/30 bg-[#0c120f] p-6 sm:p-8 space-y-6 shadow-2xl my-2 sm:my-6 shrink-0 animate-in fade-in duration-200">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-full bg-[#00D26A]/20 text-[#00D26A] flex items-center justify-center font-bold">
-                    ✓
-                  </div>
-                  <div>
-                    <span className="text-xs font-mono uppercase text-[#00D26A] font-bold block">
-                      Membre Actif · Accès Débloqué
-                    </span>
-                    <h3 className="text-base sm:text-lg font-bold text-white">{productName}</h3>
-                  </div>
-                </div>
-                <span className="text-xs text-zinc-400 font-mono">Statut : Validé</span>
-              </div>
 
-              {/* Community accesses */}
-              {(productType === "membership" || selectedApps.some(a => a.includes("Discord") || a.includes("Telegram"))) && (
-                <div className="p-5 rounded-2xl bg-[#121c17] border border-[#00D26A]/30 space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                    <MessageCircle className="size-4 text-[#00D26A]" />
-                    <span>Vos accès communautaires débloqués</span>
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#17251e] border border-white/5 text-xs">
-                      <div className="flex items-center gap-2">
-                        <DiscordIcon className="size-4 shrink-0" />
-                        <span className="font-semibold text-white">Serveur VIP Discord</span>
-                      </div>
-                      <button className="mansa-btn-green px-3 py-1 text-xs font-bold cursor-pointer">
-                        Rejoindre le Discord
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#17251e] border border-white/5 text-xs">
-                      <div className="flex items-center gap-2">
-                        <TelegramIcon className="size-4 shrink-0" />
-                        <span className="font-semibold text-white">Canal d'alertes Telegram</span>
-                      </div>
-                      <button className="mansa-btn-green px-3 py-1 text-xs font-bold cursor-pointer">
-                        Ouvrir Telegram
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Digital files downloads */}
-              {digitalFiles.length > 0 && (
-                <div className="p-5 rounded-2xl bg-[#121c17] border border-[#00D26A]/30 space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                    <Download className="size-4 text-[#00D26A]" />
-                    <span>Téléchargements immédiats de vos documents</span>
-                  </h4>
-                  {digitalFiles.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-3 rounded-xl bg-[#17251e] text-xs">
-                      <div className="flex items-center gap-2">
-                        <FolderArchive className="size-4 text-[#00D26A]" />
-                        <span className="font-semibold text-white">{file.name}</span>
-                      </div>
-                      <button className="mansa-btn-green px-3 py-1 text-xs font-bold cursor-pointer">
-                        Télécharger ({file.size})
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="p-4 rounded-xl bg-white/5 text-xs text-zinc-300">
-                <span className="font-bold text-white block mb-1">Description et instructions :</span>
-                {productDescription}
-              </div>
-            </div>
-          )}
 
         </div>
 
