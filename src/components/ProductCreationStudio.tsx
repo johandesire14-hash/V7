@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   Monitor,
@@ -281,7 +281,9 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
       },
     ]
   );
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("plan-1");
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(initialData?.pricingOptions?.[0]?.id || "plan-1");
+  const selectedPreviewPlan =
+    pricingOptions.find((option) => option.id === selectedPlanId) || pricingOptions[0];
   const [isAddingPricingOption, setIsAddingPricingOption] = useState(false);
   const [newOptionName, setNewOptionName] = useState("");
   const [newOptionPrice, setNewOptionPrice] = useState(
@@ -497,6 +499,9 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
     }
     return Array.from(list).filter((a) => VALID_MANSA_APPS.includes(a));
   }, [selectedApps, productType, courseModules, digitalFiles]);
+  const customerFacingApps = effectivePreviewApps.filter(
+    (app) => !/(cours|course|formation)/i.test(app)
+  );
 
   // CTA Text
   const [ctaButtonText, setCtaButtonText] = useState(
@@ -527,6 +532,43 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   const [bannerImage, setBannerImage] = useState<string | null>(initialData?.bannerUrl || null);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isCheckoutPreviewOpen, setIsCheckoutPreviewOpen] = useState(false);
+  const bannerImageFileInputRef = useRef<HTMLInputElement | null>(null);
+  const reminderImage = bannerImage || productImage;
+
+  const handleBannerImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") return;
+      const source = reader.result;
+      const image = new Image();
+      image.onload = () => {
+        if (!image.naturalWidth || !image.naturalHeight) {
+          setBannerImage(source);
+          return;
+        }
+        const scale = Math.min(1, 1280 / image.naturalWidth, 720 / image.naturalHeight);
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d");
+        if (!context) {
+          setBannerImage(source);
+          return;
+        }
+        context.drawImage(image, 0, 0, width, height);
+        setBannerImage(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      image.onerror = () => setBannerImage(source);
+      image.src = source;
+    };
+    reader.readAsDataURL(file);
+  };
 
   // FAQs (Fully editable from the preview & form)
   const [faqs, setFaqs] = useState<FaqItem[]>(
@@ -1925,21 +1967,18 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                     </h1>
                   </div>
 
-                  {/* Applications incluses avec ce produit */}
-                  {effectivePreviewApps.length > 0 && (
+                  {/* Applications liées */}
+                  {customerFacingApps.length > 0 && (
                     <div className="space-y-2.5 pt-1">
                       <div className="flex items-center justify-between">
                         <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                           <Sparkles className="size-3.5 text-[#00D26A]" />
-                          <span>Applications incluses avec ce produit</span>
+                          <span>Applications liées</span>
                         </h3>
-                        <span className="text-[10px] font-mono text-[#00D26A] bg-[#00D26A]/10 px-2 py-0.5 rounded border border-[#00D26A]/20">
-                          {effectivePreviewApps.length} application{effectivePreviewApps.length > 1 ? "s" : ""}
-                        </span>
                       </div>
 
                       <div className={`grid ${viewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-2.5`}>
-                        {effectivePreviewApps.map((app) => {
+                        {customerFacingApps.map((app) => {
                           let appTitle = app;
                           let appDesc = "Accès inclus dès validation.";
                           let appIcon = renderAppIcon(app, "size-4");
@@ -1953,9 +1992,6 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                           } else if (app === "Fichiers" || app === "Fichiers & Documents") {
                             appTitle = "Fichiers & Documents";
                             appDesc = `${digitalFiles.length > 0 ? `${digitalFiles.length} fichier(s) prêt(s)` : "Téléchargement immédiat des ressources"}`;
-                          } else if (app === "Cours & formations") {
-                            appTitle = "Cours & Formations vidéo";
-                            appDesc = `${courseModules.length > 0 ? `${courseModules.length} module(s) vidéo inclus` : "Cursus complet pas à pas"}`;
                           }
 
                           return (
@@ -1973,41 +2009,6 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                             </div>
                           );
                         })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Course curriculum if modules exist */}
-                  {courseModules.length > 0 &&
-                    (selectedApps.includes("Cours & formations") || productType === "course") && (
-                    <div className="p-5 rounded-2xl bg-[#14161f] border border-white/10 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="size-4 text-indigo-400" />
-                          <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                            Programme de la formation
-                          </h3>
-                        </div>
-                        <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                          {courseModules.length} module(s)
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        {courseModules.map((mod, idx) => (
-                          <div
-                            key={mod.id}
-                            className="p-3 rounded-xl bg-[#1a1d27] border border-white/5 flex items-center justify-between text-xs"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="size-5 rounded bg-indigo-500/20 text-indigo-400 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
-                                {idx + 1}
-                              </span>
-                              <span className="font-semibold text-white truncate">{mod.title}</span>
-                            </div>
-                            <span className="text-[11px] font-mono text-zinc-400 shrink-0">{mod.duration}</span>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   )}
@@ -2122,6 +2123,39 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                 <div className={viewMode === "mobile" ? "space-y-5" : "lg:col-span-5 space-y-5"}>
                   <div className={`${viewMode === "mobile" ? "" : "sticky top-4"} rounded-3xl border border-white/15 bg-[#14161f] ${viewMode === "mobile" ? "p-4" : "p-6"} shadow-2xl space-y-5`}>
                     
+                    <div className="space-y-2.5">
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 block">
+                        Rappel du produit
+                      </span>
+                      <div className="relative aspect-[16/7] overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e12]">
+                        {reminderImage ? (
+                          <img src={reminderImage} alt={productName} className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex flex-col items-center justify-center gap-2 text-zinc-400">
+                            <ImageIcon className="size-6" />
+                            <span className="text-xs">Ajouter une image de rappel produit</span>
+                          </div>
+                        )}
+                        <input
+                          ref={bannerImageFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBannerImageUpload}
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => bannerImageFileInputRef.current?.click()}
+                          className="absolute bottom-2 right-2 rounded-lg bg-black/75 hover:bg-black/90 border border-white/15 px-2.5 py-1.5 text-[10px] font-semibold text-white flex items-center gap-1.5 transition-colors"
+                          aria-label="Modifier l’image de rappel du produit"
+                        >
+                          <Upload className="size-3" />
+                          <span>{reminderImage ? "Modifier l’image" : "Ajouter une image"}</span>
+                        </button>
+                      </div>
+                      <h2 className="text-base font-bold text-white leading-snug">{productName}</h2>
+                    </div>
+
                     {/* Price Header */}
                     <div className="space-y-1 pb-3 border-b border-white/10">
                       <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 block">
@@ -2131,11 +2165,15 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                         <span className="text-3xl font-black text-white font-mono">
                           {pricingType === "free"
                             ? "0 € Gratuit"
-                            : `${priceAmount} ${currencyConfig.symbol}`}
+                            : `${selectedPreviewPlan?.price ?? priceAmount} ${currencyConfig.symbol}`}
                         </span>
                         {pricingType === "paid" && (
                           <span className="text-xs text-zinc-400 font-mono">
-                            / {billingCycle === "monthly" ? "mois" : billingCycle === "yearly" ? "an" : "paiement unique"}
+                            / {(selectedPreviewPlan?.billing || billingCycle) === "monthly"
+                              ? "mois"
+                              : (selectedPreviewPlan?.billing || billingCycle) === "yearly"
+                              ? "an"
+                              : "paiement unique"}
                           </span>
                         )}
                       </div>
@@ -2170,34 +2208,6 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                         </div>
                       ))}
                     </div>
-
-                    {/* Applications débloquées avec ce produit */}
-                    {effectivePreviewApps.length > 0 && (
-                      <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 space-y-2">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300">
-                          <span className="flex items-center gap-1.5 text-white">
-                            <CheckCircle2 className="size-3.5 text-[#00D26A]" />
-                            <span>Inclus avec cet achat :</span>
-                          </span>
-                          <span className="text-[#00D26A] font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#00D26A]/10 border border-[#00D26A]/20">
-                            {effectivePreviewApps.length} accès
-                          </span>
-                        </div>
-                        <div className="space-y-1.5">
-                          {effectivePreviewApps.map((app) => (
-                            <div key={app} className="flex items-center justify-between text-xs text-zinc-300 bg-white/[0.02] px-2.5 py-1.5 rounded-xl border border-white/5">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {renderAppIcon(app, "size-3.5")}
-                                <span className="font-medium text-white truncate">{app}</span>
-                              </div>
-                              <span className="text-[10px] font-mono text-[#00D26A] shrink-0 font-semibold">
-                                Débloqué
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Main CTA Button */}
                     <button

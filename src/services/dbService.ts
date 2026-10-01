@@ -107,6 +107,7 @@ export interface FirestoreProduct {
   apps: string[];
   storeUrl: string;
   coverImage?: string;
+  bannerUrl?: string;
   companyId?: string;
   companyName?: string;
   createdAt: string;
@@ -369,6 +370,8 @@ export async function getCreatorProducts(creatorId: string): Promise<BusinessPro
         updatedAt: data.updatedAt || new Date().toISOString().split("T")[0],
         apps: data.apps || [],
         storeUrl: data.storeUrl || `mansa.af/p/${docSnap.id}`,
+        coverImage: data.coverImage,
+        bannerUrl: data.bannerUrl,
       });
     });
 
@@ -422,6 +425,8 @@ export function subscribeToCreatorProducts(
             updatedAt: data.updatedAt || new Date().toISOString().split("T")[0],
             apps: data.apps || [],
             storeUrl: data.storeUrl || `mansa.af/p/${docSnap.id}`,
+            coverImage: data.coverImage,
+            bannerUrl: data.bannerUrl,
           });
         });
 
@@ -462,6 +467,7 @@ export async function saveProductToFirestore(
     affiliateRate?: number;
     productUrl?: string;
     coverImage?: string;
+    bannerUrl?: string;
     companyId?: string;
     companyName?: string;
   }
@@ -492,6 +498,8 @@ export async function saveProductToFirestore(
     conversionRate: "0%",
     apps: productData.includedApps,
     storeUrl: productData.productUrl || `mansa.af/p/${productId}`,
+    coverImage: productData.coverImage,
+    bannerUrl: productData.bannerUrl,
     companyId: productData.companyId || "",
     companyName: productData.companyName || "",
     createdAt: new Date().toISOString().split("T")[0],
@@ -534,6 +542,7 @@ export async function saveProductToFirestore(
       apps: productData.includedApps,
       storeUrl: productData.productUrl || `mansa.af/p/${productId}`,
       coverImage: productData.coverImage,
+      bannerUrl: productData.bannerUrl,
       companyId: productData.companyId || "",
       companyName: productData.companyName || "",
       createdAt: new Date().toISOString(),

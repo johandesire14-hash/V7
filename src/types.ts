@@ -58,6 +58,7 @@ export interface BusinessProject {
   apps: string[];
   storeUrl: string;
   coverImage?: string;
+  bannerUrl?: string;
   companyId?: string;
   companyName?: string;
 }
@@ -233,6 +234,7 @@ export interface CreatorPlatformOffer {
   billingCycle: "monthly" | "yearly" | "one_time";
   description?: string;
   imageUrl?: string;
+  bannerUrl?: string;
   creatorName?: string;
   includedApps: string[];
   subscribersCount?: string;

@@ -124,6 +124,7 @@ export default function App() {
       affiliateRate: product.affiliateRate || 25,
       productUrl: product.productUrl,
       coverImage: product.imageUrl,
+      bannerUrl: product.bannerUrl,
     });
 
     setIsStudioOpen(false);

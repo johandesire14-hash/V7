@@ -89,7 +89,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     : [
         {
           q: "Comment fonctionne l'accès après le paiement ?",
-          a: "Votre accès à l'entreprise est débloqué instantanément. Vous rejoignez l'entreprise en tant que membre et vous retrouvez vos applications (Telegram, Discord, Fichiers, Cours) directement dans votre espace.",
+          a: "Votre accès à l'entreprise est débloqué instantanément. Vos applications et fichiers inclus sont disponibles dans votre espace membre.",
         },
         {
           q: "Ai-je accès à toutes les options de l'entreprise ?",
@@ -146,6 +146,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     }
     return Array.from(new Set(list));
   }, [offer]);
+  const storefrontApps = resolvedApps.filter((app) => !/(cours|course|formation)/i.test(app));
 
   const getAppDetail = (appKey: string) => {
     const key = appKey.toLowerCase();
@@ -595,21 +596,16 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                 </p>
               </div>
 
-              {/* Applications & Accès inclus avec ce produit */}
-              {resolvedApps.length > 0 && (
+              {/* Applications liées */}
+              {storefrontApps.length > 0 && (
                 <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      <Sparkles className="size-3.5 text-emerald-400" />
-                      <span>Applications incluses avec ce produit</span>
-                    </h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold">
-                      {resolvedApps.length} {resolvedApps.length > 1 ? "accès débloqués" : "accès débloqué"}
-                    </span>
-                  </div>
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="size-3.5 text-emerald-400" />
+                    <span>Applications liées</span>
+                  </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {resolvedApps.map((appKey) => {
+                    {storefrontApps.map((appKey) => {
                       const item = getAppDetail(appKey);
                       return (
                         <div
@@ -633,40 +629,6 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                         </div>
                       );
                     })}
-                  </div>
-                </div>
-              )}
-
-              {/* Programme de formation si modules de cours */}
-              {((offer.courses && offer.courses.length > 0) || ((offer as any).courseModules && (offer as any).courseModules.length > 0)) && (
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#14161f] border border-white/10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="size-4 text-indigo-400" />
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Modules de formation ({((offer as any).courseModules?.length || offer.courses?.length || 1)})
-                      </h3>
-                    </div>
-                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                      Cursus
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {((offer as any).courseModules || offer.courses || []).map((item: any, idx: number) => (
-                      <div
-                        key={item.id || idx}
-                        className="p-3 rounded-xl bg-[#1a1d27] border border-white/5 flex items-center justify-between text-xs"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="size-5 rounded bg-indigo-500/20 text-indigo-400 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
-                            {idx + 1}
-                          </span>
-                          <span className="font-semibold text-white truncate">{item.title || item.name}</span>
-                        </div>
-                        <span className="text-[11px] font-mono text-zinc-400 shrink-0">{item.duration || "Module complet"}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
@@ -745,6 +707,17 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
             <div className="lg:col-span-5 space-y-5">
               <div className="sticky top-0 rounded-3xl border border-white/15 bg-[#14161f] p-5 sm:p-6 shadow-2xl space-y-5">
                 
+                {(offer.bannerUrl || offer.imageUrl) && (
+                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                    <img
+                      src={offer.bannerUrl || offer.imageUrl}
+                      alt={offer.title}
+                      className="w-full aspect-[16/7] object-cover"
+                    />
+                  </div>
+                )}
+                <h2 className="text-base font-bold text-white leading-snug">{offer.title}</h2>
+
                 {/* Price Header */}
                 <div className="space-y-1 pb-3 border-b border-white/10">
                   <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 block">

@@ -405,6 +405,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             totalRevenue: `${revenueNumber} ${pCurrency}`,
             activeUsers: p.membersCount || 0,
             imageUrl: p.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+            bannerUrl: p.bannerUrl,
             title: p.name,
             description: p.tagline || "",
             productUrl: p.storeUrl || `mansa.af/p/${p.id}`,
@@ -556,6 +557,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       includedApps: newProj.apps,
       affiliateRate: newProj.affiliateCommissionRate,
       productUrl: newProj.storeUrl,
+      coverImage: newProj.coverImage,
+      bannerUrl: newProj.bannerUrl,
     });
   };
 
@@ -573,6 +576,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       includedApps: updated.apps,
       affiliateRate: updated.affiliateCommissionRate,
       productUrl: updated.storeUrl,
+      coverImage: updated.coverImage,
+      bannerUrl: updated.bannerUrl,
     });
   };
 
@@ -3104,6 +3109,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               affiliateRate: newProduct.affiliateRate || 25,
               productUrl: newProduct.productUrl,
               coverImage: newProduct.imageUrl,
+              bannerUrl: newProduct.bannerUrl,
             });
             setIsProductStudioOpen(false);
             setEditingProduct(null);
