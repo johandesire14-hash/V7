@@ -41,6 +41,7 @@ import { ConfirmActionModal } from "./common/ConfirmActionModal";
 import { ModalOverlay } from "./common/ModalOverlay";
 import { AudioPreview30sPlayer } from "./common/AudioPreview30sPlayer";
 import { CurrencySelector } from "./dashboard/CurrencySelector";
+import { CheckoutPreviewModal } from "./dashboard/CheckoutPreviewModal";
 import {
   getStoredTelegramChannels,
   TelegramChannelItem,
@@ -525,6 +526,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   );
   const [bannerImage, setBannerImage] = useState<string | null>(initialData?.bannerUrl || null);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
+  const [isCheckoutPreviewOpen, setIsCheckoutPreviewOpen] = useState(false);
 
   // FAQs (Fully editable from the preview & form)
   const [faqs, setFaqs] = useState<FaqItem[]>(
@@ -2200,7 +2202,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                     {/* Main CTA Button */}
                     <button
                       type="button"
-                      onClick={handleFinalSubmit}
+                      onClick={() => setIsCheckoutPreviewOpen(true)}
                       className="w-full py-4 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-black text-base shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
                       <span>{ctaButtonText || "Rejoindre maintenant"}</span>
@@ -2236,6 +2238,23 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         </div>
 
       </div>
+
+      <CheckoutPreviewModal
+        isOpen={isCheckoutPreviewOpen}
+        onClose={() => setIsCheckoutPreviewOpen(false)}
+        companyName={effectiveCompanyName}
+        productName={productName}
+        description={productDescription}
+        productImage={productImage}
+        pricingType={pricingType}
+        priceAmount={parseFloat(priceAmount) || 0}
+        billingCycle={billingCycle}
+        currencyCode={currentCurrency}
+        currencySymbol={currencyConfig.symbol}
+        pricingOptions={pricingOptions}
+        selectedPlanId={selectedPlanId}
+        onPlanChange={setSelectedPlanId}
+      />
 
       {/* STOCK PHOTOS MODAL */}
       <ModalOverlay
