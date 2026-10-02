@@ -399,7 +399,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     >
       <div
         {...contentProps}
-        className="relative w-full max-w-5xl rounded-3xl border border-white/15 bg-[#0e1015] shadow-2xl overflow-hidden my-auto text-white cursor-default"
+        className="relative w-full max-w-[510px] rounded-2xl border border-white/15 bg-[#101012] shadow-2xl overflow-hidden my-auto text-white cursor-default"
       >
         
         {/* TOP BAR: Matches Creator Storefront Preview */}
@@ -413,8 +413,9 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                   <span>{offer.companyInitials || offer.companyName.substring(0, 2).toUpperCase()}</span>
                 )}
               </div>
-              <div>
-                <span className="text-sm font-bold text-white">{offer.companyName}</span>
+              <div className="min-w-0">
+                <span className="block truncate text-xs font-semibold text-zinc-300">{offer.companyName}</span>
+                <span className="block truncate text-sm font-bold text-white">{offer.title}</span>
               </div>
             </div>
           </div>
@@ -516,10 +517,10 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
           </div>
         ) : (
           /* 2-COLUMN STOREFRONT & CHECKOUT (EXACT REPLICA OF CREATOR PREVIEW) */
-          <div className="p-4 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 max-h-[82vh] overflow-y-auto">
+          <div className="max-h-[88vh] overflow-y-auto p-4 sm:p-5">
             
             {/* LEFT MAIN CONTENT (7 COLS) */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="hidden">
               
               {/* Hero Media Showcase */}
               <div className="relative rounded-2xl border border-white/10 bg-[#151720] overflow-hidden group">
@@ -657,13 +658,13 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
             </div>
 
             {/* RIGHT STICKY CHECKOUT & PRICING CARD (5 COLS) */}
-            <div className="lg:col-span-5 space-y-5">
-              <div className="sticky top-0 rounded-3xl border border-white/15 bg-[#14161f] p-5 sm:p-6 shadow-2xl space-y-5">
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-white/10 bg-[#10131b] p-4 shadow-xl space-y-5">
                 
-                {(offer.bannerUrl || offer.imageUrl) && (
+                {offer.imageUrl && (
                   <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
                     <img
-                      src={offer.bannerUrl || offer.imageUrl}
+                      src={offer.imageUrl}
                       alt={offer.title}
                       className="w-full aspect-[16/7] object-cover"
                     />

@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
   ExternalLink,
   ShieldCheck,
   CheckCircle2,
@@ -163,6 +164,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   }, [subscription.id, subscription.includedApps, subscription.hasPaidOffer, subscription.unlockedProductIds]);
 
   const [checkoutModalOffer, setCheckoutModalOffer] = useState<CreatorPlatformOffer | null>(null);
+  const [selectedProductDetailOffer, setSelectedProductDetailOffer] = useState<CreatorPlatformOffer | null>(null);
 
   // Enterprise branding state (Banner & Profile Photo customization)
   const [currentSub, setCurrentSub] = useState<EnterpriseSubscription>(subscription);
@@ -187,6 +189,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     setTelegramFlowStep("channels_list");
     setDiscordFlowStep("channels_list");
     setCheckoutModalOffer(null);
+    setSelectedProductDetailOffer(null);
     setPreviewMode("admin");
     setIsPreviewMenuOpen(false);
     setIsPostComposerOpen(false);
@@ -1587,7 +1590,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                         } else {
                           setCompanyTab("produits");
                           setActiveTab("accueil");
-                          setCheckoutModalOffer(offer);
+                          setSelectedProductDetailOffer(offer);
                         }
                         setIsPreviewMenuOpen(false);
                         if (isMobile) setIsMobileSidebarOpen(false);
@@ -2842,6 +2845,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                         return (
                           <div
                             key={offer.id}
+                            onClick={() => setSelectedProductDetailOffer(offer)}
                             className={`rounded-2xl border p-6 space-y-4 relative flex flex-col justify-between transition-all ${
                               isOfferUnlocked
                                 ? "border-emerald-500/40 bg-[#12141c] shadow-lg shadow-emerald-500/5"
@@ -2898,7 +2902,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                               <span className="text-sm font-bold text-white font-mono">{offer.priceDisplay}</span>
                               {isOfferUnlocked ? (
                                 <button
-                                  onClick={() => {
+                                  onClick={(event) => {
+                                    event.stopPropagation();
                                     if (isOfferTg) {
                                       setActiveTab("telegram");
                                       setTelegramFlowStep("channels_list");
@@ -2920,7 +2925,10 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                                 </button>
                               ) : (
                                 <button
-                                  onClick={() => setCheckoutModalOffer(offer)}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedProductDetailOffer(offer);
+                                  }}
                                   className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-md shadow-emerald-500/20"
                                 >
                                   <span>Débloquer l'accès</span>
@@ -3351,7 +3359,63 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
         </>
       )}
 
-      {/* Checkout Modal if user clicks on locked Telegram / Discord / Product offer */}
+      {selectedProductDetailOffer && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-[#101012] text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="size-9 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                  {selectedProductDetailOffer.imageUrl ? (
+                    <img src={selectedProductDetailOffer.imageUrl} alt="" className="size-full object-cover" />
+                  ) : (
+                    <span className="flex size-full items-center justify-center text-xs font-bold text-zinc-200">
+                      {(selectedProductDetailOffer.companyName || "MP").slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-zinc-300">{selectedProductDetailOffer.companyName}</p>
+                  <h2 className="truncate text-sm font-bold text-white">{selectedProductDetailOffer.title}</h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedProductDetailOffer(null)}
+                aria-label="Fermer la fiche produit"
+                className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="space-y-5 p-4 sm:p-5">
+              {selectedProductDetailOffer.imageUrl && (
+                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                  <img src={selectedProductDetailOffer.imageUrl} alt={selectedProductDetailOffer.title} className="aspect-[16/7] w-full object-cover" />
+                </div>
+              )}
+              <div className="space-y-2 text-center">
+                <p className="text-xs font-semibold text-zinc-200">Fiche produit</p>
+                <h3 className="text-2xl font-black text-white">{selectedProductDetailOffer.title}</h3>
+                <p className="text-sm leading-relaxed text-zinc-400">{selectedProductDetailOffer.description || `Accédez à l'offre ${selectedProductDetailOffer.title}.`}</p>
+                <p className="pt-2 text-2xl font-black text-white">{selectedProductDetailOffer.priceDisplay}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCheckoutModalOffer(selectedProductDetailOffer);
+                  setSelectedProductDetailOffer(null);
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1769e8] px-4 py-3 text-sm font-bold text-white hover:bg-[#0f5bd0]"
+              >
+                <span>{selectedProductDetailOffer.ctaText || "Rejoindre maintenant"}</span>
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Checkout Modal after the product CTA */}
       {checkoutModalOffer && (
         <OfferCheckoutModal
           isOpen={!!checkoutModalOffer}
