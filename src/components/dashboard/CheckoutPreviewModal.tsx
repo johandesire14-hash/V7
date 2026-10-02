@@ -26,6 +26,16 @@ interface CheckoutPreviewModalProps {
   pricingOptions: CheckoutPreviewPlan[];
   selectedPlanId: string;
   onPlanChange: (planId: string) => void;
+  mode?: "preview" | "live";
+  initialEmail?: string;
+  onEmailChange?: (email: string) => void;
+  initialPaymentMethod?: "card" | "mobile_money";
+  onPaymentMethodChange?: (method: "card" | "mobile_money") => void;
+  onMobileMoneyValidationChange?: (result: any) => void;
+  onSubmit?: () => void;
+  isProcessing?: boolean;
+  isSubmitDisabled?: boolean;
+  paymentError?: string | null;
 }
 
 const billingLabel = (billing: CheckoutPreviewPlan["billing"]) => {
@@ -56,9 +66,19 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
   pricingOptions,
   selectedPlanId,
   onPlanChange,
+  mode = "preview",
+  initialEmail = "",
+  onEmailChange,
+  initialPaymentMethod = "card",
+  onPaymentMethodChange,
+  onMobileMoneyValidationChange,
+  onSubmit,
+  isProcessing = false,
+  isSubmitDisabled = false,
+  paymentError = null,
 }) => {
-  const [email, setEmail] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "mobile_money">("card");
+  const [email, setEmail] = useState(initialEmail);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "mobile_money">(initialPaymentMethod);
 
   if (!isOpen) return null;
 
@@ -175,7 +195,10 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                onEmailChange?.(event.target.value);
+              }}
               placeholder="nom@exemple.com"
               className="w-full rounded-lg border border-white/10 bg-[#18181b] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-blue-500"
             />
@@ -190,7 +213,10 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
                 <button
                   type="button"
                   aria-pressed={paymentMethod === "card"}
-                  onClick={() => setPaymentMethod("card")}
+                  onClick={() => {
+                    setPaymentMethod("card");
+                    onPaymentMethodChange?.("card");
+                  }}
                   className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-xs font-semibold transition-colors ${
                     paymentMethod === "card"
                       ? "border-blue-500/70 bg-blue-500/10 text-white"
@@ -203,7 +229,10 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
                 <button
                   type="button"
                   aria-pressed={paymentMethod === "mobile_money"}
-                  onClick={() => setPaymentMethod("mobile_money")}
+                  onClick={() => {
+                    setPaymentMethod("mobile_money");
+                    onPaymentMethodChange?.("mobile_money");
+                  }}
                   className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-xs font-semibold transition-colors ${
                     paymentMethod === "mobile_money"
                       ? "border-amber-400/70 bg-amber-400/10 text-white"
@@ -219,23 +248,23 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
                 <div className="space-y-2 rounded-xl border border-white/10 bg-[#18181b] p-3.5" aria-label="Aperçu du formulaire carte bancaire">
                   <label className="block space-y-1 text-[10px] font-medium text-zinc-400">
                     Numéro de carte
-                    <input disabled placeholder="1234  5678  9012  3456" className="w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500 placeholder:text-zinc-600" />
+                    <input disabled={mode === "preview"} placeholder="1234  5678  9012  3456" className="w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500 placeholder:text-zinc-600" />
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block space-y-1 text-[10px] font-medium text-zinc-400">
                       Expiration
-                      <input disabled placeholder="MM / AA" className="w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500 placeholder:text-zinc-600" />
+                      <input disabled={mode === "preview"} placeholder="MM / AA" className="w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500 placeholder:text-zinc-600" />
                     </label>
                     <label className="block space-y-1 text-[10px] font-medium text-zinc-400">
                       CVC
-                      <input disabled placeholder="CVC" className="w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500 placeholder:text-zinc-600" />
+                      <input disabled={mode === "preview"} placeholder="CVC" className="w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500 placeholder:text-zinc-600" />
                     </label>
                   </div>
                 </div>
               ) : (
                 <MobileMoneyPaymentForm
                   currency={currencyCode}
-                  onValidationChange={() => undefined}
+                  onValidationChange={(result) => onMobileMoneyValidationChange?.(result)}
                   defaultDialCode="+242"
                   className="rounded-xl border border-white/10 bg-[#18181b] p-3.5"
                 />
@@ -246,17 +275,23 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
           <div className="space-y-2 border-t border-white/10 pt-4">
             <button
               type="button"
-              disabled
-              title="Aperçu uniquement"
+              disabled={mode === "preview" || isSubmitDisabled || isProcessing}
+              onClick={onSubmit}
+              title={mode === "preview" ? "Aperçu uniquement" : undefined}
               className="w-full cursor-not-allowed rounded-xl bg-[#1769e8] px-4 py-3 text-sm font-bold text-white opacity-70"
             >
-              {pricingType === "free"
+              {isProcessing
+                ? "Validation sécurisée..."
+                : pricingType === "free"
                 ? "Rejoindre gratuitement"
                 : `Payer ${formattedAmount} ${currencySymbol}`}
             </button>
-            <p className="text-center text-[10px] text-zinc-500">
-              Aperçu du checkout : aucun paiement n’est effectué depuis le studio.
-            </p>
+            {paymentError && <p className="text-center text-[10px] text-red-300">{paymentError}</p>}
+            {mode === "preview" && (
+              <p className="text-center text-[10px] text-zinc-500">
+                Aperçu du checkout : aucun paiement n’est effectué depuis le studio.
+              </p>
+            )}
           </div>
         </div>
       </section>
