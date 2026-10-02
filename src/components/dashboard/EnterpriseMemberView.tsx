@@ -165,6 +165,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
 
   const [checkoutModalOffer, setCheckoutModalOffer] = useState<CreatorPlatformOffer | null>(null);
   const [selectedProductDetailOffer, setSelectedProductDetailOffer] = useState<CreatorPlatformOffer | null>(null);
+  const [selectedProductPlanId, setSelectedProductPlanId] = useState<string | null>(null);
+  const [expandedProductFaqIndex, setExpandedProductFaqIndex] = useState<number | null>(null);
 
   // Enterprise branding state (Banner & Profile Photo customization)
   const [currentSub, setCurrentSub] = useState<EnterpriseSubscription>(subscription);
@@ -1591,6 +1593,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                           setCompanyTab("produits");
                           setActiveTab("accueil");
                           setSelectedProductDetailOffer(offer);
+                          setSelectedProductPlanId(offer.pricingOptions?.[0]?.id || null);
+                          setExpandedProductFaqIndex(null);
                         }
                         setIsPreviewMenuOpen(false);
                         if (isMobile) setIsMobileSidebarOpen(false);
@@ -2928,6 +2932,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                                   onClick={(event) => {
                                     event.stopPropagation();
                                     setSelectedProductDetailOffer(offer);
+                                    setSelectedProductPlanId(offer.pricingOptions?.[0]?.id || null);
+                                    setExpandedProductFaqIndex(null);
                                   }}
                                   className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-md shadow-emerald-500/20"
                                 >
@@ -3359,61 +3365,68 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
         </>
       )}
 
-      {selectedProductDetailOffer && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-[#101012] text-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="size-9 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                  {selectedProductDetailOffer.imageUrl ? (
-                    <img src={selectedProductDetailOffer.imageUrl} alt="" className="size-full object-cover" />
-                  ) : (
-                    <span className="flex size-full items-center justify-center text-xs font-bold text-zinc-200">
-                      {(selectedProductDetailOffer.companyName || "MP").slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
+      {selectedProductDetailOffer && (() => {
+        const offer = selectedProductDetailOffer;
+        const plans = offer.pricingOptions && offer.pricingOptions.length > 0
+          ? offer.pricingOptions
+          : [{ id: "default", name: offer.priceDisplay, price: offer.priceAmount, billing: offer.billingCycle }];
+        const selectedPlan = plans.find((plan) => plan.id === selectedProductPlanId) || plans[0];
+        const faqs = offer.faqs && offer.faqs.length > 0 ? offer.faqs : [
+          { q: "Comment puis-je accéder à mon contenu après l'achat ?", a: "Dès la confirmation du paiement, votre accès est activé immédiatement." },
+          { q: "Quand mon accès est-il disponible ?", a: "La livraison et l'accès sont automatiques après validation du paiement." },
+        ];
+        return (
+          <div className="fixed inset-0 z-40 overflow-y-auto bg-black/85 p-2 backdrop-blur-md sm:p-4">
+            <div className="mx-auto my-2 w-full max-w-5xl rounded-3xl border border-white/15 bg-[#0e1015] text-white shadow-2xl sm:my-6">
+              <div className="flex items-center justify-between border-b border-white/10 bg-[#14161d] px-4 py-3.5 sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="size-9 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                    {offer.companyLogo ? <img src={offer.companyLogo} alt="" className="size-full object-cover" /> : <span className="flex size-full items-center justify-center text-xs font-bold">{(offer.companyName || "MP").slice(0, 2).toUpperCase()}</span>}
+                  </div>
+                  <div className="min-w-0"><p className="truncate text-xs font-semibold text-zinc-300">{offer.companyName}</p><h2 className="truncate text-sm font-bold text-white">{offer.title}</h2></div>
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-zinc-300">{selectedProductDetailOffer.companyName}</p>
-                  <h2 className="truncate text-sm font-bold text-white">{selectedProductDetailOffer.title}</h2>
+                <button type="button" onClick={() => setSelectedProductDetailOffer(null)} aria-label="Fermer la fiche produit" className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 p-4 sm:p-8 lg:grid-cols-12 lg:gap-8">
+                <div className="space-y-6 lg:col-span-7">
+                  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#151720]">
+                    <div className="relative h-56 w-full sm:h-72">
+                      {offer.imageUrl ? <img src={offer.imageUrl} alt={offer.title} className="size-full object-cover" /> : <div className="flex size-full items-center justify-center text-sm text-zinc-500">Ajouter une image</div>}
+                      <div className="absolute left-3 top-3 rounded-lg border border-white/10 bg-black/70 px-2.5 py-1 text-[10px] font-bold text-emerald-400">Accès instantané 24/7</div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">À propos de cette offre</h3>
+                    <div className="whitespace-pre-wrap rounded-2xl border border-white/10 bg-[#14161f] p-5 text-xs leading-relaxed text-zinc-300">{offer.description || "Description détaillée de l'offre."}</div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">Questions fréquemment posées</h3>
+                    <div className="space-y-2">{faqs.map((faq, index) => {
+                      const expanded = expandedProductFaqIndex === index;
+                      return <div key={index} className="space-y-2 rounded-2xl border border-white/10 bg-[#14161f] p-4"><button type="button" onClick={() => setExpandedProductFaqIndex(expanded ? null : index)} className="flex w-full items-center justify-between text-left text-xs font-bold text-white"><span>{faq.q}</span><span className="text-emerald-400">{expanded ? "−" : "+"}</span></button>{expanded && <p className="border-t border-white/5 pt-2 text-xs leading-relaxed text-zinc-400">{faq.a}</p>}</div>;
+                    })}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-5 lg:col-span-5">
+                  <div className="space-y-5 rounded-3xl border border-white/15 bg-[#14161f] p-4 shadow-2xl sm:p-6">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400">Rappel du produit</span>
+                    <div className="relative aspect-[16/7] overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e12]">
+                      {offer.bannerUrl || offer.imageUrl ? <img src={offer.bannerUrl || offer.imageUrl} alt={offer.title} className="size-full object-cover" /> : <div className="flex size-full items-center justify-center text-xs text-zinc-500">Ajouter une image de rappel produit</div>}
+                    </div>
+                    <h2 className="text-base font-bold leading-snug text-white">{offer.title}</h2>
+                    <div className="space-y-1 border-b border-white/10 pb-3"><span className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400">{offer.pricingType === "free" ? "Accès Libre" : "Tarif Officiel"}</span><div className="flex items-baseline gap-2"><span className="font-mono text-3xl font-black text-white">{offer.pricingType === "free" ? "Gratuit" : `${selectedPlan.price} ${offer.currency === "EUR" ? "€" : offer.currency}`}</span>{offer.pricingType === "paid" && <span className="font-mono text-xs text-zinc-400">/ {selectedPlan.billing === "yearly" ? "an" : selectedPlan.billing === "one_time" ? "paiement unique" : "mois"}</span>}</div></div>
+                    {offer.pricingType === "paid" && <div className="space-y-2"><label className="block text-[11px] font-bold text-zinc-300">Choisissez votre formule :</label>{plans.map((plan) => <button type="button" key={plan.id} onClick={() => setSelectedProductPlanId(plan.id)} className={`flex w-full items-center justify-between rounded-2xl border p-3.5 text-left text-xs font-semibold ${selectedProductPlanId === plan.id ? "border-emerald-400 bg-emerald-500/10 text-white" : "border-white/10 bg-[#1b1e2a] text-zinc-300"}`}><span>{plan.name}</span><span className="font-mono font-bold text-white">{plan.price} {offer.currency === "EUR" ? "€" : offer.currency}</span></button>)}</div>}
+                    <button type="button" onClick={() => { setCheckoutModalOffer(offer); setSelectedProductDetailOffer(null); }} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0066FF] py-4 text-base font-black text-white shadow-xl hover:bg-[#0055EE]"><span>{offer.ctaText || "Rejoindre maintenant"}</span><ArrowRight className="size-4" /></button>
+                    <div className="space-y-2 border-t border-white/5 pt-2 text-xs text-zinc-300"><div className="flex items-center gap-2"><ShieldCheck className="size-4 shrink-0 text-emerald-400" /><span>Paiement sécurisé par carte & Mobile Money</span></div><div className="flex items-center gap-2"><Zap className="size-4 shrink-0 text-emerald-400" /><span>Livraison automatique et accès immédiat</span></div><div className="flex items-center gap-2"><Lock className="size-4 shrink-0 text-emerald-400" /><span>Annulation en 1-clic sans engagement</span></div></div>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedProductDetailOffer(null)}
-                aria-label="Fermer la fiche produit"
-                className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <div className="space-y-5 p-4 sm:p-5">
-              {selectedProductDetailOffer.imageUrl && (
-                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                  <img src={selectedProductDetailOffer.imageUrl} alt={selectedProductDetailOffer.title} className="aspect-[16/7] w-full object-cover" />
-                </div>
-              )}
-              <div className="space-y-2 text-center">
-                <p className="text-xs font-semibold text-zinc-200">Fiche produit</p>
-                <h3 className="text-2xl font-black text-white">{selectedProductDetailOffer.title}</h3>
-                <p className="text-sm leading-relaxed text-zinc-400">{selectedProductDetailOffer.description || `Accédez à l'offre ${selectedProductDetailOffer.title}.`}</p>
-                <p className="pt-2 text-2xl font-black text-white">{selectedProductDetailOffer.priceDisplay}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setCheckoutModalOffer(selectedProductDetailOffer);
-                  setSelectedProductDetailOffer(null);
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1769e8] px-4 py-3 text-sm font-bold text-white hover:bg-[#0f5bd0]"
-              >
-                <span>{selectedProductDetailOffer.ctaText || "Rejoindre maintenant"}</span>
-                <ArrowRight className="size-4" />
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Checkout Modal after the product CTA */}
       {checkoutModalOffer && (
