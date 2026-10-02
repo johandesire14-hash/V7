@@ -3359,10 +3359,12 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           onClose={() => setCheckoutModalOffer(null)}
           isCompanyOwner={isCompanyOwner}
           isAlreadyPurchased={
-            unlockedProductIds.includes(checkoutModalOffer.id) ||
-            (currentSub?.purchasedOfferIds || []).includes(checkoutModalOffer.id) ||
-            (currentSub?.unlockedProductIds || []).includes(checkoutModalOffer.id) ||
-            currentSub?.productId === checkoutModalOffer.id
+            !isCompanyOwner && (
+              unlockedProductIds.includes(checkoutModalOffer.id) ||
+              (currentSub?.purchasedOfferIds || []).includes(checkoutModalOffer.id) ||
+              (currentSub?.unlockedProductIds || []).includes(checkoutModalOffer.id) ||
+              currentSub?.productId === checkoutModalOffer.id
+            )
           }
           onAccessContent={(off) => {
             const isOfferTg = off.includedApps?.includes("Telegram") || (off.telegramChannels && off.telegramChannels.length > 0);

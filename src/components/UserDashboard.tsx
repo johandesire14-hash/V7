@@ -364,6 +364,52 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     switchTab("communaute");
   };
 
+  const handleOpenActiveCompanyCommunity = () => {
+    if (!activeCompany) return;
+
+    const existing = memberSubscriptions.find(
+      (subscription) =>
+        subscription.id === activeCompany.id || subscription.companyId === activeCompany.id
+    );
+    if (existing) {
+      setSelectedCommunitySubId(existing.id);
+      setActiveWorkspaceId("personnel");
+      switchTab("communaute");
+      return;
+    }
+
+    const companyProduct = productsList.find((product) => product.companyId === activeCompany.id);
+    const ownerCommunitySub: EnterpriseSubscription = {
+      id: `owner-community-${activeCompany.id}`,
+      companyId: activeCompany.id,
+      companyName: activeCompany.name,
+      companyInitials: activeCompany.logoInitials || activeCompany.name.slice(0, 2).toUpperCase(),
+      companyLogo: activeCompany.companyLogo,
+      companyBanner: activeCompany.companyBanner,
+      companyGradient: activeCompany.colorGradient || "from-[#12141c] to-black",
+      productName: companyProduct?.name || "Communauté de l'entreprise",
+      priceDisplay: companyProduct?.priceDisplay || "Gratuit",
+      status: "active",
+      subscribedAt: "Aujourd'hui",
+      hasPaidOffer: false,
+      hasJoined: true,
+      creatorName: user.name || "Créateur Mansa",
+      description: activeCompany.description || "",
+      includedApps: ["dashboard", "support"],
+      telegramChannels: [],
+      discordChannels: [],
+      subscribersCount: "0 membres",
+    };
+
+    setMemberSubscriptions((previous) => [
+      ownerCommunitySub,
+      ...previous.filter((subscription) => subscription.companyId !== activeCompany.id),
+    ]);
+    setSelectedCommunitySubId(ownerCommunitySub.id);
+    setActiveWorkspaceId("personnel");
+    switchTab("communaute");
+  };
+
   const handleCompanyCreated = (newComp: Omit<Company, "id" | "createdAt">) => {
     const userKey = user.uid || user.email || "default";
     const { companies: updated, created } = saveCompany(userKey, newComp);
@@ -410,7 +456,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             description: p.tagline || "",
             productUrl: p.storeUrl || `mansa.af/p/${p.id}`,
             affiliateRate: p.affiliateCommissionRate || 25,
-            ctaText: "Rejoindre",
+            ctaText: p.ctaText || "Rejoindre maintenant",
             companyId: p.companyId || "",
             companyName: p.companyName || "",
             pricingOptions: (p as any).pricingOptions || [],
@@ -557,6 +603,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       includedApps: newProj.apps,
       affiliateRate: newProj.affiliateCommissionRate,
       productUrl: newProj.storeUrl,
+      ctaText: newProj.ctaText,
       coverImage: newProj.coverImage,
       bannerUrl: newProj.bannerUrl,
     });
@@ -576,6 +623,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       includedApps: updated.apps,
       affiliateRate: updated.affiliateCommissionRate,
       productUrl: updated.storeUrl,
+      ctaText: updated.ctaText,
       coverImage: updated.coverImage,
       bannerUrl: updated.bannerUrl,
     });
@@ -1360,6 +1408,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     <span>{lang === "fr" ? "Accueil" : "Home"}</span>
                   </button>
 
+                  {/* Communauté de l'entreprise active : ouvre l'espace personnel sur cette entreprise */}
+                  <button
+                    onClick={handleOpenActiveCompanyCommunity}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  >
+                    <UsersIcon className="size-4 text-[#00D26A]" />
+                    <span>{lang === "fr" ? "Communauté" : "Community"}</span>
+                  </button>
+
                   {/* Produits */}
                   <button
                     onClick={() => switchTab("produits")}
@@ -1751,6 +1808,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       >
                         <Home className="size-4 text-zinc-300" />
                         <span>{lang === "fr" ? "Accueil" : "Home"}</span>
+                      </button>
+
+                      <button
+                        onClick={handleOpenActiveCompanyCommunity}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors cursor-pointer min-h-[44px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                      >
+                        <UsersIcon className="size-4 text-[#00D26A]" />
+                        <span>{lang === "fr" ? "Communauté" : "Community"}</span>
                       </button>
 
                       <button
@@ -3108,6 +3173,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               includedApps: newProduct.includedApps,
               affiliateRate: newProduct.affiliateRate || 25,
               productUrl: newProduct.productUrl,
+              ctaText: newProduct.ctaText,
               coverImage: newProduct.imageUrl,
               bannerUrl: newProduct.bannerUrl,
             });

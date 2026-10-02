@@ -16,7 +16,6 @@ import {
   MessageSquare,
   Users,
   UserPlus,
-  Building2,
   GraduationCap,
   BookOpen,
   FileText,
@@ -80,7 +79,6 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
   const customerName = user?.name || (user as any)?.displayName || "Client";
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
-  const [isPaymentPanelOpen, setIsPaymentPanelOpen] = useState<boolean>(false);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
   const [createdSubscription, setCreatedSubscription] = useState<EnterpriseSubscription | null>(null);
 
@@ -188,64 +186,19 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
     };
   };
 
-  const handleOwnerFreeUnlock = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      const baseApps = ["dashboard", "support"];
-      const offerApps = offer.includedApps || [];
-      const combinedApps = Array.from(new Set([...baseApps, ...offerApps]));
-
-      const ownerSub: EnterpriseSubscription = {
-        id: `sub-${offer.companyId}-${Date.now()}`,
-        companyId: offer.companyId,
-        companyName: offer.companyName,
-        companyInitials:
-          offer.companyInitials ||
-          offer.companyName.substring(0, 2).toUpperCase(),
-        companyLogo: offer.companyLogo,
-        companyGradient:
-          offer.companyGradient || "from-[#0d2818] via-[#051f10] to-[#010a04]",
-        productName: offer.title,
-        productId: offer.id,
-        priceDisplay: offer.priceDisplay,
-        status: "active",
-        subscribedAt: "À l'instant",
-        onlineMembersCount: 142,
-        unreadCount: 0,
-        includedApps: combinedApps,
-        unlockedProductIds: [offer.id],
-        purchasedOfferIds: [offer.id],
-        hasPaidOffer: true,
-        telegramChannels: offer.telegramChannels || [],
-        discordChannels: offer.discordChannels || [],
-        ebooks: offer.ebooks || [],
-        courses: offer.courses || [],
-        customResources: offer.customResources || [],
-        discordServerName: `${offer.companyName} Discord HQ`,
-        discordInvite: offer.discordInvite || (offer.discordChannels?.[0]?.inviteLink || ""),
-        supportChannels: {
-          telegramSupport: "@SupportEquipeAfhub",
-          email: `support@${offer.companyId}.afhub.app`,
-        },
-      };
-
-      setCreatedSubscription(ownerSub);
-      setIsProcessing(false);
-      setIsCompleted(true);
-    }, 400);
-  };
-
   const isMobileMoneyValid =
     paymentMethod === "mobile_money" ? Boolean(mobileMoneyValidation?.isValid) : true;
 
   const isPayButtonDisabled =
-    isProcessing || (offer.pricingType === "paid" && !isMobileMoneyValid);
+    isProcessing || (offer.pricingType === "paid" && !isCompanyOwner && !isMobileMoneyValid);
 
   const handleProcessPayment = async () => {
     setPaymentError(null);
     setIsProcessing(true);
 
-    if (offer.pricingType === "paid") {
+    // The owner sees the same payment page, but the final action is free and
+    // must never create an invoice or record a sale.
+    if (offer.pricingType === "paid" && !isCompanyOwner) {
       if (paymentMethod === "mobile_money" && !mobileMoneyValidation?.isValid) {
         setIsProcessing(false);
         setPaymentError("Veuillez renseigner un numéro Mobile Money valide avant de continuer.");
@@ -362,7 +315,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
       setIsCompleted(true);
 
       // Enregistrement systématique de la vente rattachée au compte financier du créateur
-      if (offer.pricingType !== "free" && currentPlan.price > 0) {
+      if (!isCompanyOwner && offer.pricingType !== "free" && currentPlan.price > 0) {
         const creatorKey = offer.companyId || user?.uid || user?.email || "creator-default";
         createRealTransaction(creatorKey, {
           buyerName: customerName,
@@ -797,65 +750,9 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                       <ArrowRight className="size-4" />
                     </button>
                   </div>
-                ) : isCompanyOwner ? (
-                  <div className="p-5 rounded-2xl bg-[#0066FF]/10 border border-[#0066FF]/30 text-center space-y-4">
-                    <div className="size-12 rounded-2xl bg-[#0066FF]/20 text-[#0066FF] flex items-center justify-center mx-auto">
-                      <Building2 className="size-6" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-base font-bold text-white">Aperçu Public (Créateur)</h3>
-                      <p className="text-xs text-zinc-300 leading-relaxed">
-                        Vous prévisualisez l'offre comme un client. En tant que propriétaire de l'entreprise, votre accès est gratuit.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleOwnerFreeUnlock}
-                      disabled={isProcessing}
-                      className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      {isProcessing ? (
-                        <div className="flex items-center gap-2">
-                          <span className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                          <span>Activation en cours...</span>
-                        </div>
-                      ) : (
-                        <>
-                          <span>Accéder à l'offre (Accès Créateur · Gratuit)</span>
-                          <ArrowRight className="size-4" />
-                        </>
-                      )}
-                    </button>
-                  </div>
                 ) : (
                   <>
-                    {!isPaymentPanelOpen ? (
-                      <div className="rounded-2xl border border-[#0066FF]/30 bg-[#0066FF]/10 p-5 text-center space-y-3">
-                        <div className="size-10 rounded-xl bg-[#0066FF]/20 text-[#4d8dff] flex items-center justify-center mx-auto">
-                          <CreditCard className="size-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-bold text-white">Prêt à rejoindre cette offre ?</h3>
-                          <p className="mt-1 text-xs text-zinc-400">Passez à l’étape suivante pour renseigner vos informations de paiement.</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setIsPaymentPanelOpen(true)}
-                          className="w-full py-3.5 rounded-2xl bg-[#0066FF] hover:bg-[#0055EE] text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
-                        >
-                          <span>{offer.pricingType === "free" ? "Continuer vers l’adhésion" : "Continuer vers le paiement"}</span>
-                          <ArrowRight className="size-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-white/10 bg-[#10131b] p-4 space-y-4">
-                        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                          <div>
-                            <h3 className="text-sm font-bold text-white">Panneau de paiement</h3>
-                            <p className="text-[11px] text-zinc-400 mt-0.5">Vos informations restent liées à cette commande.</p>
-                          </div>
-                          <button type="button" onClick={() => setIsPaymentPanelOpen(false)} className="text-[11px] font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer">Retour au produit</button>
-                        </div>
+                    <div className="rounded-2xl border border-white/10 bg-[#10131b] p-4 space-y-4">
                     <div className="space-y-3 pt-1">
                       <div>
                         <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
@@ -947,8 +844,8 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                           <>
                             <span>
                               {offer.pricingType === "free"
-                                ? "Rejoindre l'entreprise (Gratuit)"
-                                : `Payer ${currentPlan.price} ${offer.currency === "EUR" ? "€" : offer.currency} & Rejoindre`}
+                                ? "Rejoindre gratuitement"
+                                : `Payer ${currentPlan.price} ${offer.currency === "EUR" ? "€" : offer.currency}`}
                             </span>
                             <ArrowRight className="size-4" />
                           </>
@@ -964,9 +861,7 @@ export const OfferCheckoutModal: React.FC<OfferCheckoutModalProps> = ({
                           </p>
                         )}
                     </div>
-
-                      </div>
-                    )}
+                    </div>
                   </>
                 )}
                 {/* Security Checklist */}

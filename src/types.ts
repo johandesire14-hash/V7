@@ -57,6 +57,7 @@ export interface BusinessProject {
   updatedAt: string;
   apps: string[];
   storeUrl: string;
+  ctaText?: string;
   coverImage?: string;
   bannerUrl?: string;
   companyId?: string;
@@ -236,6 +237,7 @@ export interface CreatorPlatformOffer {
   imageUrl?: string;
   bannerUrl?: string;
   creatorName?: string;
+  ctaText?: string;
   includedApps: string[];
   subscribersCount?: string;
   rating?: number;

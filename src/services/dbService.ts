@@ -106,6 +106,7 @@ export interface FirestoreProduct {
   conversionRate?: string;
   apps: string[];
   storeUrl: string;
+  ctaText?: string;
   coverImage?: string;
   bannerUrl?: string;
   companyId?: string;
@@ -370,6 +371,7 @@ export async function getCreatorProducts(creatorId: string): Promise<BusinessPro
         updatedAt: data.updatedAt || new Date().toISOString().split("T")[0],
         apps: data.apps || [],
         storeUrl: data.storeUrl || `mansa.af/p/${docSnap.id}`,
+        ctaText: data.ctaText,
         coverImage: data.coverImage,
         bannerUrl: data.bannerUrl,
       });
@@ -425,6 +427,7 @@ export function subscribeToCreatorProducts(
             updatedAt: data.updatedAt || new Date().toISOString().split("T")[0],
             apps: data.apps || [],
             storeUrl: data.storeUrl || `mansa.af/p/${docSnap.id}`,
+            ctaText: data.ctaText,
             coverImage: data.coverImage,
             bannerUrl: data.bannerUrl,
           });
@@ -466,6 +469,7 @@ export async function saveProductToFirestore(
     includedApps: string[];
     affiliateRate?: number;
     productUrl?: string;
+    ctaText?: string;
     coverImage?: string;
     bannerUrl?: string;
     companyId?: string;
@@ -498,6 +502,7 @@ export async function saveProductToFirestore(
     conversionRate: "0%",
     apps: productData.includedApps,
     storeUrl: productData.productUrl || `mansa.af/p/${productId}`,
+    ctaText: productData.ctaText,
     coverImage: productData.coverImage,
     bannerUrl: productData.bannerUrl,
     companyId: productData.companyId || "",
@@ -541,6 +546,7 @@ export async function saveProductToFirestore(
       conversionRate: "0%",
       apps: productData.includedApps,
       storeUrl: productData.productUrl || `mansa.af/p/${productId}`,
+      ctaText: productData.ctaText,
       coverImage: productData.coverImage,
       bannerUrl: productData.bannerUrl,
       companyId: productData.companyId || "",
@@ -829,6 +835,7 @@ export async function getPublicProducts(): Promise<BusinessProject[]> {
         updatedAt: data.updatedAt || new Date().toISOString().split("T")[0],
         apps: data.apps || [],
         storeUrl: data.storeUrl || `mansa.af/p/${docSnap.id}`,
+        ctaText: data.ctaText,
       });
     });
 
@@ -1572,4 +1579,3 @@ export async function clearRealisticDemoData(creatorId: string): Promise<void> {
     window.dispatchEvent(new CustomEvent("mansa:demo-data-cleared"));
   } catch (e) {}
 }
-

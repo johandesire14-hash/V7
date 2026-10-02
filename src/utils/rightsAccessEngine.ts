@@ -560,6 +560,7 @@ export function convertProjectToPlatformOffer(
       "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
     bannerUrl: project.bannerUrl || undefined,
     creatorName: project.creatorName || cName,
+    ctaText: project.ctaText || undefined,
     includedApps: apps,
     subscribersCount: `${project.membersCount || project.activeUsers || 142} membres`,
     rating: 4.98,
