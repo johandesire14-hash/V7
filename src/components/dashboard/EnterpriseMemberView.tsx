@@ -762,6 +762,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   const [creatorAppStep, setCreatorAppStep] = useState<"closed" | "choose" | "link" | "content">("closed");
   const [selectedCreatorApp, setSelectedCreatorApp] = useState<CreatorAppId | null>(null);
   const [linkedCreatorProductIds, setLinkedCreatorProductIds] = useState<string[]>([]);
+  const [creatorWorkflowNotice, setCreatorWorkflowNotice] = useState<string | null>(null);
   const [creatorCourseName, setCreatorCourseName] = useState("");
   const [creatorCourseDescription, setCreatorCourseDescription] = useState("");
   const [creatorCourseCoverFileName, setCreatorCourseCoverFileName] = useState("");
@@ -3194,18 +3195,22 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   subscribersCount: offer.subscribersCount || 0,
                 }))}
                 onOpenCoursesWorkflow={(productIds) => {
+                  setActiveTab("applications");
                   setSelectedCreatorApp("courses");
                   setLinkedCreatorProductIds(productIds.length > 0 ? productIds : (selectedPreviewOfferId ? [selectedPreviewOfferId] : []));
                   const saved = JSON.parse(localStorage.getItem(`mansa_creator_courses_${companyId}`) || "[]");
                   setCreatorCourses(Array.isArray(saved) ? saved : []);
                   setEditingCreatorCourseId(null);
                   setCourseCreationStep("library");
+                  setCreatorWorkflowNotice("Courses a bien été liée à l’offre sélectionnée.");
                   setCreatorAppStep("content");
                 }}
                 onOpenFilesWorkflow={(productIds) => {
+                  setActiveTab("applications");
                   setSelectedCreatorApp("files");
                   setLinkedCreatorProductIds(productIds.length > 0 ? productIds : (selectedPreviewOfferId ? [selectedPreviewOfferId] : []));
                   setCreatorFileName("");
+                  setCreatorWorkflowNotice("Fichiers a bien été lié à l’offre sélectionnée.");
                   setCreatorAppStep("content");
                 }}
                 onBackToDashboard={() => setActiveTab("accueil")}
@@ -3673,17 +3678,22 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
       )}
 
       {creatorAppStep !== "closed" && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#12141c] shadow-2xl">
+        <div className={creatorAppStep === "content" && selectedCreatorApp === "courses" ? "fixed inset-0 z-[70] overflow-y-auto bg-[#0a0b0e]" : "fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"}>
+          <div className={creatorAppStep === "content" && selectedCreatorApp === "courses" ? "min-h-full w-full bg-[#0a0b0e]" : "w-full max-w-2xl rounded-2xl border border-white/10 bg-[#12141c] shadow-2xl"}>
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-400">{currentSub.companyName}</div>
                 <h2 className="mt-1 text-lg font-bold text-white">
-                  {creatorAppStep === "choose" ? "Ajouter une application" : creatorAppStep === "link" ? "Accès à l’application" : `Configurer ${selectedCreatorApp ? creatorAppMeta[selectedCreatorApp].title : "l’application"}`}
+                  {creatorAppStep === "choose" ? "Ajouter une application" : creatorAppStep === "link" ? "Accès à l’application" : selectedCreatorApp === "courses" ? "Courses" : `Configurer ${selectedCreatorApp ? creatorAppMeta[selectedCreatorApp].title : "l’application"}`}
                 </h2>
                 <p className="mt-1 text-xs text-zinc-400">
-                  {creatorAppStep === "choose" ? "Choisissez l’application à ajouter à cette entreprise." : creatorAppStep === "link" ? "Définissez quels produits peuvent accéder à cette application." : "Ajoutez ou modifiez le contenu sans quitter la Communauté."}
+                  {creatorAppStep === "choose" ? "Choisissez l’application à ajouter à cette entreprise." : creatorAppStep === "link" ? "Définissez quels produits peuvent accéder à cette application." : selectedCreatorApp === "courses" ? "Créez, organisez et publiez les cours liés aux offres sélectionnées." : "Ajoutez ou modifiez le contenu sans quitter la Communauté."}
                 </p>
+                {creatorWorkflowNotice && creatorAppStep === "content" && (
+                  <div className="mt-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300">
+                    ✓ {creatorWorkflowNotice}
+                  </div>
+                )}
               </div>
               <button
                 type="button"
@@ -3751,6 +3761,23 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
 
             {creatorAppStep === "content" && selectedCreatorApp && (
               <div className="space-y-4 p-5">
+                {selectedCreatorApp === "courses" && courseCreationStep === "content" && (
+                  <div className="rounded-xl border border-white/10 bg-[#0c0d0e] p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Cours</div>
+                        <h3 className="mt-1 text-lg font-bold text-white">{creatorCourseName || "Nouveau cours"}</h3>
+                      </div>
+                      <button type="button" onClick={() => setCourseCreationStep("library")} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-white/5">← Retour aux cours</button>
+                    </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                      <span className="rounded-lg bg-blue-500/10 px-3 py-2 text-blue-300">Chapitre 1</span>
+                      <span className="text-zinc-600">›</span>
+                      <span className="rounded-lg border border-white/10 px-3 py-2 text-white">Lesson 1</span>
+                      <button type="button" onClick={() => setCreatorChapterNames((chapters) => [...chapters, `Chapitre ${chapters.length + 1}`])} className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-zinc-400 hover:border-blue-500/60 hover:text-white">+ Ajouter un nouveau chapitre</button>
+                    </div>
+                  </div>
+                )}
                 {(selectedCreatorApp === "courses" || selectedCreatorApp === "files") && (
                   <>
                     {selectedCreatorApp === "courses" && courseCreationStep === "library" && (

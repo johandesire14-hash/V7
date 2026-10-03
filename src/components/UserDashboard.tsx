@@ -158,6 +158,45 @@ const getCountryFlagFromLocation = (location: string): string => {
   return "🌍";
 };
 
+const CreatorCoursesWorkspace: React.FC<{
+  companyId: string;
+  productIds: string[];
+  products: CreatedProductData[];
+  onBack: () => void;
+}> = ({ companyId, productIds, products, onBack }) => {
+  const storageKey = `mansa_creator_courses_${companyId}`;
+  const [courses, setCourses] = useState<Array<{ id: string; title: string; description: string; chapters: string[] }>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const linkedProducts = products.filter((product) => productIds.includes(product.id));
+  const saveCourse = () => {
+    if (!title.trim()) return;
+    const next = [...courses, { id: `course-${Date.now()}`, title: title.trim(), description: description.trim(), chapters: ["Introduction"] }];
+    setCourses(next);
+    localStorage.setItem(storageKey, JSON.stringify(next));
+    setEditing(false);
+    setTitle("");
+    setDescription("");
+  };
+
+  if (editing) {
+    return <div className="min-h-full space-y-5 rounded-2xl border border-white/10 bg-[#0c0d0e] p-5">
+      <div className="flex items-center justify-between border-b border-white/10 pb-4"><div><div className="text-[10px] font-semibold uppercase tracking-wider text-blue-400">Courses</div><h1 className="mt-1 text-xl font-bold text-white">Créer un cours</h1></div><button onClick={() => setEditing(false)} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300">← Retour aux cours</button></div>
+      <div className="grid gap-5 lg:grid-cols-[280px_1fr]"><aside className="rounded-xl border border-white/10 bg-[#121316] p-4"><div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Chapitres</div><div className="mt-3 rounded-lg bg-blue-500/10 px-3 py-3 text-sm font-semibold text-white">Chapitre 1</div><button className="mt-3 w-full rounded-lg border border-dashed border-white/20 px-3 py-3 text-xs text-zinc-400">+ Ajouter un nouveau chapitre</button></aside><main className="space-y-4"><label className="block space-y-2"><span className="text-xs font-semibold text-zinc-300">Nom du cours</span><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Formation Trading débutant" className="w-full rounded-xl border border-white/10 bg-[#161822] px-3 py-3 text-sm text-white outline-none focus:border-blue-500" /></label><label className="block space-y-2"><span className="text-xs font-semibold text-zinc-300">Description</span><textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} placeholder="Présentez le contenu et les objectifs du cours" className="w-full resize-none rounded-xl border border-white/10 bg-[#161822] px-3 py-3 text-sm text-white outline-none focus:border-blue-500" /></label><div className="rounded-xl border border-white/10 bg-[#121316] p-4"><div className="flex items-center justify-between"><div><div className="text-sm font-bold text-white">Chapitre 1</div><div className="mt-1 text-xs text-zinc-500">Lesson 1</div></div><button className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300">Ajouter une vidéo</button></div><div className="mt-4 rounded-lg border border-dashed border-white/15 p-5 text-center text-xs text-zinc-500">Ajoutez une vidéo, un lien YouTube ou une pièce jointe à cette leçon.</div></div><div className="flex justify-end border-t border-white/10 pt-4"><button onClick={saveCourse} disabled={!title.trim()} className="rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white disabled:opacity-40">Enregistrer le cours</button></div></main></div>
+    </div>;
+  }
+
+  return <div className="min-h-full space-y-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-wider text-blue-400">{linkedProducts.length ? `Lié à ${linkedProducts.map((product) => product.title || product.name).join(", ")}` : "Application Courses"}</div><h1 className="mt-1 text-2xl font-bold text-white">Courses</h1><p className="mt-1 text-xs text-zinc-400">Créez et organisez les cours liés à vos offres.</p></div><button onClick={onBack} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300">Retour aux applications</button></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><button onClick={() => setEditing(true)} className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-[#0c0d0e] text-zinc-400 hover:border-blue-500/60 hover:text-white"><span className="mb-3 flex size-12 items-center justify-center rounded-full border border-white/15 text-3xl">+</span><span className="text-sm font-semibold">Ajouter un cours</span></button>{courses.map((course) => <button key={course.id} onClick={() => { setTitle(course.title); setDescription(course.description); setEditing(true); }} className="min-h-44 rounded-xl border border-white/10 bg-[#121316] p-4 text-left hover:border-blue-500/50"><div className="flex size-10 items-center justify-center rounded-lg bg-purple-500/15 text-xl">🎓</div><div className="mt-5 text-sm font-bold text-white">{course.title}</div><div className="mt-1 text-xs text-zinc-500">{course.chapters.length} chapitre(s)</div></button>)}</div></div>;
+};
+
 export const UserDashboard: React.FC<UserDashboardProps> = ({
   user,
   onLogout,
@@ -660,6 +699,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   }>>([]);
   const [newChatInput, setNewChatInput] = useState("");
   const [isTabLoading, setIsTabLoading] = useState(false);
+  const [creatorCoursesLink, setCreatorCoursesLink] = useState<string[] | null>(null);
   const [isGuidedTourOpen, setIsGuidedTourOpen] = useState(false);
   const [isSeedingData, setIsSeedingData] = useState(false);
   const [seedToastMessage, setSeedToastMessage] = useState<string | null>(null);
@@ -2827,16 +2867,27 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 <DashboardProductsSkeleton />
               </div>
             ) : (
-              <ConnectedAppsView
-                lang={lang}
-                initialSubView="catalog"
-                availableProducts={productsList.map((p) => ({
-                  id: p.id,
-                  title: p.title || p.name,
-                  priceDisplay: p.priceDisplay || formatCurrency(p.priceAmount, currency),
-                  subscribersCount: p.activeUsers || 0,
-                }))}
-              />
+              creatorCoursesLink && activeCompany ? (
+                <CreatorCoursesWorkspace
+                  companyId={activeCompany.id}
+                  productIds={creatorCoursesLink}
+                  products={productsList}
+                  onBack={() => setCreatorCoursesLink(null)}
+                />
+              ) : (
+                <ConnectedAppsView
+                  lang={lang}
+                  initialSubView="catalog"
+                  availableProducts={productsList.map((p) => ({
+                    id: p.id,
+                    title: p.title || p.name,
+                    priceDisplay: p.priceDisplay || formatCurrency(p.priceAmount, currency),
+                    subscribersCount: p.activeUsers || 0,
+                  }))}
+                  onOpenCoursesWorkflow={(productIds) => setCreatorCoursesLink(productIds)}
+                  onOpenFilesWorkflow={() => undefined}
+                />
+              )
             )
           )}
 
