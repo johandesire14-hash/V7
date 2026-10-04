@@ -135,6 +135,9 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   // Navigation inside the enterprise hub - defaults to "accueil" for company home view
   const [activeTab, setActiveTab] = useState<"accueil" | "support" | "applications" | "telegram" | "discord">("accueil");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileCompanyNavOpen, setIsMobileCompanyNavOpen] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 1023px)").matches : false
+  );
 
   // Dynamic access state based on user's active apps & subscriptions
   const [currentIncludedApps, setCurrentIncludedApps] = useState<string[]>(
@@ -194,6 +197,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     setSelectedProductDetailOffer(null);
     setPreviewMode("admin");
     setIsPreviewMenuOpen(false);
+    setIsMobileCompanyNavOpen(typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches);
     setIsPostComposerOpen(false);
     setSelectedMemberProductId(subscription.productId || null);
   }, [companyId, subscription.productId]);
@@ -727,6 +731,50 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
         offer.title.toLowerCase().includes("discord")
     );
   }, [enterpriseOffers]);
+
+  const mobileConfiguredApps = React.useMemo(() => {
+    const hasApp = (keywords: string[]) => enterpriseOffers.some((offer) =>
+      offer.includedApps?.some((app) => keywords.some((keyword) => app.toLowerCase().includes(keyword))) ||
+      keywords.some((keyword) => offer.title.toLowerCase().includes(keyword))
+    );
+    const apps: Array<"telegram" | "discord" | "files" | "courses"> = [];
+    if (hasTelegramApp) apps.push("telegram");
+    if (hasDiscordApp) apps.push("discord");
+    if (hasApp(["fichier", "file", "ebook", "template"]) || enterpriseOffers.some((offer) => (offer.digitalFiles?.length || offer.ebooks?.length || 0) > 0)) apps.push("files");
+    if (hasApp(["cours", "course", "formation", "masterclass"]) || enterpriseOffers.some((offer) => (offer.courses?.length || offer.courseModules?.length || 0) > 0)) apps.push("courses");
+    return apps;
+  }, [enterpriseOffers, hasTelegramApp, hasDiscordApp]);
+
+  const openMobileConfiguredApp = (app: "telegram" | "discord" | "files" | "courses") => {
+    setIsMobileCompanyNavOpen(false);
+    if (app === "telegram") {
+      setActiveTab("telegram");
+      setTelegramFlowStep("channels_list");
+      return;
+    }
+    if (app === "discord") {
+      setActiveTab("discord");
+      setDiscordFlowStep("channels_list");
+      return;
+    }
+    const keywords = app === "courses" ? ["cours", "course", "formation", "masterclass"] : ["fichier", "file", "ebook", "template"];
+    const offer = enterpriseOffers.find((candidate) =>
+      candidate.includedApps?.some((includedApp) => keywords.some((keyword) => includedApp.toLowerCase().includes(keyword))) ||
+      keywords.some((keyword) => candidate.title.toLowerCase().includes(keyword))
+    ) || enterpriseOffers[0];
+    if (!offer) return;
+    const isUnlocked = memberUnlockedOfferIds.some((offerId) => offerId.toLowerCase() === offer.id.toLowerCase());
+    setActiveTab("accueil");
+    setCompanyTab("produits");
+    if (isUnlocked) {
+      if (app === "courses") setIsCourseModalOpen(true);
+      else setIsEbookModalOpen(true);
+    } else {
+      setSelectedProductDetailOffer(offer);
+      setSelectedProductPlanId(offer.pricingOptions?.[0]?.id || null);
+      setExpandedProductFaqIndex(null);
+    }
+  };
 
   // Redirection automatique si onglet non autorisé
   React.useEffect(() => {
@@ -1598,6 +1646,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                           setExpandedProductFaqIndex(null);
                         }
                         setIsPreviewMenuOpen(false);
+                        if (isMobile) setIsMobileCompanyNavOpen(false);
                         if (isMobile) setIsMobileSidebarOpen(false);
                       }}
                       className={`w-full flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${selectedMemberProductId === offer.id ? "bg-white/10 text-white" : "text-zinc-300 hover:bg-white/5 hover:text-white"}`}
@@ -1638,6 +1687,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             onClick={() => {
               setActiveTab("accueil");
               setCompanyTab("accueil");
+              if (isMobile) setIsMobileCompanyNavOpen(false);
               if (isMobile) setIsMobileSidebarOpen(false);
             }}
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
@@ -1697,6 +1747,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             <button
               onClick={() => {
                 setActiveTab("telegram");
+                if (isMobile) setIsMobileCompanyNavOpen(false);
                 if (isMobile) setIsMobileSidebarOpen(false);
               }}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
@@ -1715,6 +1766,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             <button
               onClick={() => {
                 setActiveTab("discord");
+                if (isMobile) setIsMobileCompanyNavOpen(false);
                 if (isMobile) setIsMobileSidebarOpen(false);
               }}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
@@ -1727,6 +1779,16 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               <span className={activeTab === "discord" ? "text-white font-bold" : "text-zinc-300"}>Discord</span>
             </button>
           )}
+          {isMobile && mobileConfiguredApps.filter((app) => app !== "telegram" && app !== "discord").map((app) => (
+            <button
+              key={`mobile-app-${app}`}
+              onClick={() => openMobileConfiguredApp(app)}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+            >
+              {app === "courses" ? <GraduationCap className="size-4 text-indigo-400" /> : <FileText className="size-4 text-blue-400" />}
+              <span>{app === "courses" ? "Courses" : "Fichiers"}</span>
+            </button>
+          ))}
         </nav>
 
         {isMobile && onBackToPersonal && (
@@ -1967,8 +2029,16 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           </div>
         )}
 
+        {/* Écran mobile de la communauté : la barre des entreprises reste à gauche et
+            la zone principale reprend directement la navigation réelle de l'entreprise. */}
+        {isCompact && isMobileCompanyNavOpen && activeTab === "accueil" && companyTab === "accueil" && (
+          <div className="flex-1 min-w-0 lg:hidden overflow-y-auto bg-[#08090b] select-text">
+            {renderSidebarContent(false)}
+          </div>
+        )}
+
         {/* MAIN WORKSPACE CONTENT */}
-        <div className="flex-1 flex flex-col overflow-y-auto bg-[#08090b] select-text">
+        <div className={`${isCompact && isMobileCompanyNavOpen && activeTab === "accueil" && companyTab === "accueil" ? "hidden lg:flex" : "flex"} flex-1 min-w-0 flex-col overflow-y-auto bg-[#08090b] select-text`}>
         
         {/* ============================================================ */}
         {/* VIEW 1: VUE D'ACCUEIL DE L'ENTREPRISE (DARK MODE HAUT DE GAMME) */}
@@ -1988,7 +2058,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   {/* Boutons mobiles */}
                   <div className="lg:hidden flex items-center gap-1.5">
                     <button
-                      onClick={() => setIsMobileSidebarOpen(true)}
+                      onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                       className="p-2 rounded-xl bg-white/[0.05] border border-white/10 text-white min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
                       title="Menu entreprise"
                     >
@@ -2039,9 +2109,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                       </h1>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-zinc-400">
-                      <span>3 480 membres</span>
-                      <span>·</span>
-                      <span className="text-emerald-400 font-mono">1 420 en ligne</span>
+                      <span className="text-emerald-400 font-mono">{currentSub.onlineMembersCount ?? 0} en ligne</span>
                     </div>
                   </div>
                 </div>
@@ -2197,7 +2265,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   <div className="absolute top-3 left-3 right-48 z-20 flex items-center justify-between lg:hidden pointer-events-auto">
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsMobileSidebarOpen(true)}
+                    onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                     className="p-2 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white flex items-center gap-1.5 shadow-lg min-h-[40px] min-w-[40px] justify-center cursor-pointer active:scale-95 transition-all"
                     title="Ouvrir le menu de l'entreprise"
                   >
@@ -2381,11 +2449,9 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="font-bold text-white tracking-tight">3 480</span>
-                    <span className="text-zinc-400">membres</span>
                     <span className="text-emerald-400 text-xs font-mono font-medium flex items-center gap-1.5 ml-1">
                       <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>{subscription.onlineMembersCount || 1420} en ligne</span>
+                      <span>{subscription.onlineMembersCount ?? 0} en ligne</span>
                     </span>
                   </div>
                 </div>
