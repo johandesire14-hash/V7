@@ -1833,7 +1833,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   }, [allSubscriptions, user]);
 
   return (
-    <div className="flex h-full w-full flex-1 overflow-hidden relative select-none bg-[#08090b] text-[#eeeeee] font-sans antialiased">
+    <div className="mansa-viewport mansa-safe-bottom flex h-full w-full flex-1 overflow-hidden relative select-none bg-[#08090b] text-[#eeeeee] font-sans antialiased">
       {/* 1. LEFTMOST RAIL: Enterprise Squares ("les cases entreprise sur le cote comme sur l'image") */}
       <div className="w-[72px] shrink-0 bg-[#08090a] border-r border-white/5 flex flex-col items-center py-3 gap-2 overflow-y-auto no-scrollbar select-none z-10">
           
@@ -3109,7 +3109,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
         {/* VIEW 2: SUPPORT CHAT                                         */}
         {/* ============================================================ */}
         {activeTab === "support" && (
-          <div className="p-3.5 sm:p-6 md:p-8 max-w-3xl mx-auto w-full flex flex-col h-full space-y-4 animate-in fade-in duration-150">
+          <div className="mansa-keyboard-scroll mansa-safe-bottom p-3.5 sm:p-6 md:p-8 max-w-3xl mx-auto w-full flex flex-col h-full space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2.5">
                 <button
@@ -3131,7 +3131,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             </div>
 
             {/* Chat message box */}
-            <div className="flex-1 rounded-2xl border border-white/10 bg-[#121316] p-4 overflow-y-auto space-y-3 min-h-[340px]">
+            <div className="mansa-keyboard-scroll flex-1 rounded-2xl border border-white/10 bg-[#121316] p-4 overflow-y-auto space-y-3 min-h-[340px]">
               {supportChatList.map((msg) => (
                 <div
                   key={msg.id}
@@ -3152,7 +3152,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             </div>
 
             {/* Chat Input */}
-            <form onSubmit={handleSendSupport} className="flex gap-2">
+            <form onSubmit={handleSendSupport} className="mansa-safe-bottom flex gap-2">
               <input
                 type="text"
                 value={supportMessage}

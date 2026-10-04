@@ -14,6 +14,15 @@
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #000000;
     color: #F1F1F1;
+    min-height: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  html,
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
   }
 
   h1, h2, h3, h4, h5, h6, .font-heading, .title-grotesk {
@@ -28,6 +37,38 @@
 
 .font-inter {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Responsive primitives shared by dashboard, community, checkout and chat. */
+.mansa-viewport {
+  min-height: 100dvh;
+  min-height: var(--mansa-viewport-height, 100dvh);
+}
+
+.mansa-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.mansa-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mansa-keyboard-scroll {
+  min-height: 0;
+  scroll-padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+  overscroll-behavior: contain;
+}
+
+.mansa-modal-viewport {
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1.5rem);
+}
+
+@media (max-width: 1023px) {
+  input,
+  textarea,
+  select {
+    scroll-margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
+  }
 }
 
 /* The live Pulse feed moves only when a new transaction arrives and is not manually scrollable. */

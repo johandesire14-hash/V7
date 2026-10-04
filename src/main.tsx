@@ -55,10 +55,36 @@ class RootErrorBoundary extends React.Component<Props, State> {
   }
 }
 
+function ViewportMetrics() {
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const updateViewportMetrics = () => {
+      const viewport = window.visualViewport;
+      const height = viewport?.height || window.innerHeight;
+      const keyboardOffset = Math.max(0, window.innerHeight - height - (viewport?.offsetTop || 0));
+      root.style.setProperty("--mansa-viewport-height", `${height}px`);
+      root.style.setProperty("--mansa-keyboard-offset", `${keyboardOffset}px`);
+    };
+
+    updateViewportMetrics();
+    window.addEventListener("resize", updateViewportMetrics, { passive: true });
+    window.visualViewport?.addEventListener("resize", updateViewportMetrics, { passive: true });
+    window.visualViewport?.addEventListener("scroll", updateViewportMetrics, { passive: true });
+    return () => {
+      window.removeEventListener("resize", updateViewportMetrics);
+      window.visualViewport?.removeEventListener("resize", updateViewportMetrics);
+      window.visualViewport?.removeEventListener("scroll", updateViewportMetrics);
+    };
+  }, []);
+
+  return null;
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RootErrorBoundary>
       <AuthProvider>
+        <ViewportMetrics />
         <App />
       </AuthProvider>
     </RootErrorBoundary>

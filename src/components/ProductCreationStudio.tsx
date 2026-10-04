@@ -1012,7 +1012,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   const currencyConfig = SUPPORTED_CURRENCIES[currentCurrency] || SUPPORTED_CURRENCIES.USD;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0c0e] text-[#eeeeee] font-sans antialiased overflow-hidden selection:bg-[#00D26A]/30 selection:text-[#00D26A]">
+    <div className="mansa-viewport mansa-safe-bottom fixed inset-0 z-50 flex flex-col bg-[#0b0c0e] text-[#eeeeee] font-sans antialiased overflow-hidden selection:bg-[#00D26A]/30 selection:text-[#00D26A]">
       
       {/* 1. TOP HEADER BAR */}
       <header className="flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.08] bg-[#0f1013] px-4 sm:px-6">

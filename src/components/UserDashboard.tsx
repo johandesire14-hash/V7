@@ -918,7 +918,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     null;
 
   return (
-    <div className="flex h-screen w-full flex-col bg-[#0f1012] text-[#eeeeee] font-sans antialiased overflow-hidden selection:bg-[#FA4616]/30 selection:text-[#FA4616]">
+    <div className="mansa-viewport mansa-safe-bottom flex h-screen w-full flex-col bg-[#0f1012] text-[#eeeeee] font-sans antialiased overflow-hidden selection:bg-[#FA4616]/30 selection:text-[#FA4616]">
       
       {/* 1. TOP HEADER BAR (Fully Responsive) */}
       <header className="flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.07] bg-[#0c0d0e] px-2.5 sm:px-6 gap-2 select-none">
@@ -2748,7 +2748,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 <DashboardProductsSkeleton />
               </div>
             ) : (
-              <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-[#121316] overflow-hidden flex flex-col h-[calc(100vh-140px)]">
+              <div className="mansa-keyboard-scroll max-w-3xl mx-auto rounded-2xl border border-white/10 bg-[#121316] overflow-hidden flex flex-col h-[calc(100dvh-140px)]">
                 <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#16171b]">
                   <div className="flex items-center gap-3">
                     <div className="size-3 rounded-full bg-[#00D26A]" />

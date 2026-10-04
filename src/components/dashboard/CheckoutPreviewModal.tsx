@@ -101,7 +101,7 @@ export const CheckoutPreviewModal: React.FC<CheckoutPreviewModalProps> = ({
     >
       <section
         aria-labelledby="checkout-preview-title"
-        className="max-h-[92vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#101012] text-white shadow-2xl"
+        className="mansa-modal-viewport mansa-keyboard-scroll max-h-[92vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#101012] text-white shadow-2xl"
       >
         <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-[#101012]/95 px-4 py-3 backdrop-blur sm:px-5">
           <div className="flex min-w-0 items-center gap-3">

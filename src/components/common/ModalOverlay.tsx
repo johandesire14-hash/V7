@@ -49,7 +49,7 @@ export const ModalOverlay: React.FC<ModalOverlayProps> = ({
     <div
       id={id}
       {...overlayProps}
-      className={`fixed inset-0 ${zIndex} flex items-center justify-center p-3 sm:p-5 overflow-y-auto ${backdropClassName} ${className} animate-in fade-in duration-150 cursor-pointer`}
+      className={`mansa-keyboard-scroll mansa-safe-top mansa-safe-bottom fixed inset-0 ${zIndex} flex items-center justify-center p-3 sm:p-5 overflow-y-auto ${backdropClassName} ${className} animate-in fade-in duration-150 cursor-pointer`}
     >
       <div
         {...contentProps}
