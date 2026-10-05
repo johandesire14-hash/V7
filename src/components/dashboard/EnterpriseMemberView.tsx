@@ -3465,8 +3465,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               </div>
 
               <div className="grid grid-cols-1 gap-6 p-4 sm:p-8 lg:grid-cols-12 lg:gap-8">
-                <div className="space-y-6 lg:col-span-7">
-                  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#151720]">
+                <div className="order-2 space-y-6 lg:order-none lg:col-span-7">
+                  <div className="relative hidden overflow-hidden rounded-2xl border border-white/10 bg-[#151720] sm:block">
                     <div className="relative h-56 w-full sm:h-72">
                       {offer.imageUrl ? <img src={offer.imageUrl} alt={offer.title} className="size-full object-cover" /> : <div className="flex size-full items-center justify-center text-sm text-zinc-500">Ajouter une image</div>}
                       <div className="absolute left-3 top-3 rounded-lg border border-white/10 bg-black/70 px-2.5 py-1 text-[10px] font-bold text-emerald-400">Accès instantané 24/7</div>
@@ -3485,7 +3485,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-5 lg:col-span-5">
+                <div className="order-1 space-y-5 lg:order-none lg:col-span-5">
                   <div className="space-y-5 rounded-3xl border border-white/15 bg-[#14161f] p-4 shadow-2xl sm:p-6">
                     <span className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400">Rappel du produit</span>
                     <div className="relative aspect-[16/7] overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e12]">
