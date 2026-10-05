@@ -1838,7 +1838,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   return (
     <div className="mansa-viewport mansa-safe-bottom flex h-full w-full flex-1 overflow-hidden relative select-none bg-[#08090b] text-[#eeeeee] font-sans antialiased">
       {/* 1. LEFTMOST RAIL: Enterprise Squares ("les cases entreprise sur le cote comme sur l'image") */}
-      <div className="w-[72px] shrink-0 bg-[#08090a] border-r border-white/5 flex flex-col items-center py-3 gap-2 overflow-y-auto no-scrollbar select-none z-10">
+      <div className="hidden lg:flex w-[72px] shrink-0 bg-[#08090a] border-r border-white/5 flex-col items-center py-3 gap-2 overflow-y-auto no-scrollbar select-none z-10">
           
           {/* 1. Return to Personal Workspace */}
           {onBackToPersonal && (
