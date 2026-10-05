@@ -114,6 +114,7 @@ interface EnterpriseMemberViewProps {
   onOpenCreatorAssistance?: () => void;
   onCreateProduct?: () => void;
   onOpenCreatorApplications?: () => void;
+  onCheckoutOpenChange?: (open: boolean) => void;
 }
 
 export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
@@ -131,6 +132,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   onOpenCreatorAssistance,
   onCreateProduct,
   onOpenCreatorApplications,
+  onCheckoutOpenChange,
 }) => {
   // Navigation inside the enterprise hub - defaults to "accueil" for company home view
   const [activeTab, setActiveTab] = useState<"accueil" | "support" | "applications" | "telegram" | "discord">("accueil");
@@ -167,6 +169,9 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   }, [subscription.id, subscription.includedApps, subscription.hasPaidOffer, subscription.unlockedProductIds]);
 
   const [checkoutModalOffer, setCheckoutModalOffer] = useState<CreatorPlatformOffer | null>(null);
+  React.useEffect(() => {
+    onCheckoutOpenChange?.(Boolean(checkoutModalOffer));
+  }, [checkoutModalOffer, onCheckoutOpenChange]);
   const [selectedProductDetailOffer, setSelectedProductDetailOffer] = useState<CreatorPlatformOffer | null>(null);
   const [selectedProductPlanId, setSelectedProductPlanId] = useState<string | null>(null);
   const [expandedProductFaqIndex, setExpandedProductFaqIndex] = useState<number | null>(null);

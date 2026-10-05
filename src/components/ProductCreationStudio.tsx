@@ -186,8 +186,6 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
   // Preview write / preview tab state for description editor
   const [descTab, setDescTab] = useState<"write" | "preview">("write");
 
-  // Parité mobile / bureau : bascule fluide entre formulaire et aperçu sans perte d'état
-  const [mobileStudioTab, setMobileStudioTab] = useState<"editor" | "preview">("editor");
 
   // Single Synchronized Source of Truth for Offer Name & Title
   const [productName, setProductName] = useState(
@@ -1030,7 +1028,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         </div>
 
         {/* Center: Device Switcher */}
-        <div className="flex items-center rounded-xl border border-white/10 bg-[#17181c] p-1 text-xs">
+        <div className="hidden items-center rounded-xl border border-white/10 bg-[#17181c] p-1 text-xs sm:flex">
           <button
             type="button"
             aria-pressed={viewMode === "desktop"}
@@ -1096,43 +1094,13 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         </div>
       </header>
 
-      {/* Mobile Parity Bar: Switch between Form Editor and Live Preview seamlessly */}
-      <div className="sm:hidden flex items-center justify-between px-4 py-2 bg-[#121316] border-b border-white/10 shrink-0">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0c0d10] border border-white/10 w-full">
-          <button
-            type="button"
-            onClick={() => setMobileStudioTab("editor")}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              mobileStudioTab === "editor"
-                ? "bg-[#00D26A] text-black shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <FileText className="size-3.5" />
-            <span>Formulaire complet</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileStudioTab("preview")}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              mobileStudioTab === "preview"
-                ? "bg-[#00D26A] text-black shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Monitor className="size-3.5" />
-            <span>Aperçu en direct</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. MAIN SPLIT WORKSPACE: LEFT FORM & RIGHT INTERACTIVE PREVIEW */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* 2. WORKSPACE: vertical flow on mobile, split columns on desktop */}
+      <div className="flex flex-1 min-h-0 flex-col overflow-y-auto overflow-x-hidden sm:flex-row sm:overflow-hidden">
         
         {/* ========================================================================= */}
         {/* LEFT COLUMN: EDIT PRODUCT DETAILS                                         */}
         {/* ========================================================================= */}
-        <div className={`${mobileStudioTab === "editor" ? "flex" : "hidden sm:flex"} w-full sm:w-[420px] md:w-[460px] shrink-0 border-r border-white/[0.08] bg-[#0c0d10] flex-col justify-between overflow-y-auto p-5 space-y-6`}>
+        <div className="flex w-full shrink-0 flex-col justify-between space-y-6 border-b border-white/[0.08] bg-[#0c0d10] p-5 sm:w-[420px] sm:border-b-0 sm:border-r md:w-[460px] sm:overflow-y-auto">
           
           <div className="space-y-6">
             
@@ -1870,6 +1838,37 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
               <span>{initialData?.id ? "Enregistrer les modifications" : "Créer un produit"}</span>
             </button>
 
+            {/* Contrôles d'affichage dans le flux mobile, entre création et preview. */}
+            <div className="flex items-center rounded-xl border border-white/10 bg-[#17181c] p-1 text-xs sm:hidden">
+              <button
+                type="button"
+                aria-pressed={viewMode === "desktop"}
+                onClick={() => setViewMode("desktop")}
+                className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 font-semibold transition-all cursor-pointer ${viewMode === "desktop" ? "bg-[#252830] text-white shadow-sm" : "text-zinc-400 hover:text-zinc-200"}`}
+              >
+                <Monitor className={`size-3.5 ${viewMode === "desktop" ? "text-[#00D26A]" : "text-zinc-400"}`} />
+                <span>Bureau</span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={viewMode === "mobile"}
+                onClick={() => setViewMode("mobile")}
+                className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 font-semibold transition-all cursor-pointer ${viewMode === "mobile" ? "bg-[#252830] text-white shadow-sm" : "text-zinc-400 hover:text-zinc-200"}`}
+              >
+                <Smartphone className={`size-3.5 ${viewMode === "mobile" ? "text-[#00D26A]" : "text-zinc-400"}`} />
+                <span>Mobile</span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={viewMode === "member"}
+                onClick={() => setViewMode("member")}
+                className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 font-semibold transition-all cursor-pointer ${viewMode === "member" ? "bg-[#252830] text-white shadow-sm" : "text-zinc-400 hover:text-zinc-200"}`}
+              >
+                <Users className={`size-3.5 ${viewMode === "member" ? "text-[#00D26A]" : "text-zinc-400"}`} />
+                <span>Membre</span>
+              </button>
+            </div>
+
             {initialData?.id && onDelete && (
               <button
                 type="button"
@@ -1887,7 +1886,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
         {/* ========================================================================= */}
         {/* RIGHT COLUMN: LIVE INTERACTIVE PREVIEW (MOBILE / DESKTOP / MEMBER)       */}
         {/* ========================================================================= */}
-        <div className="flex-1 min-h-0 h-full overflow-y-auto overflow-x-hidden bg-[#07080a] p-4 sm:p-8 pb-36 flex flex-col items-center justify-start">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-visible bg-[#07080a] p-4 pb-36 sm:h-full sm:overflow-y-auto sm:overflow-x-hidden sm:p-8">
           
           {/* ONE CUSTOMER-FACING PRODUCT PAGE, ADAPTED TO THE SELECTED PREVIEW WIDTH */}
           {/* ======================================================================= */}
