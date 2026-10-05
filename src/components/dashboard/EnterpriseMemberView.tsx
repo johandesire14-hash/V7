@@ -2052,7 +2052,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
           <div className="w-full flex-1 flex flex-col pb-16 animate-in fade-in duration-150">
             
             {/* 1. EN-TÊTE VISUEL SELON LE MODE (COMPACT SANS BANNIÈRE OU STANDARD AVEC BANNIÈRE) */}
-            {isCompact ? (
+            {/* Le template complet est partagé par desktop et mobile pour garder les trois onglets cohérents. */}
+            {false ? (
               /* ============================================================ */
               /* EN-TÊTE COMPACT (SANS BANNIÈRE ENCOMBRANTE)                  */
               /* Déterminé automatiquement selon la quantité/type d'éléments  */
@@ -2244,7 +2245,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               <>
                 <div className="relative w-full h-44 sm:h-64 md:h-72 lg:h-80 overflow-hidden bg-[#111216] select-none group">
                   <img
-                    src={currentSub.companyBanner || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1800&q=85"}
+                    src={currentSub.companyBanner || ""}
                     alt={`Bannière ${currentSub.companyName}`}
                     className="w-full h-full object-cover object-center"
                   />
@@ -2532,9 +2533,9 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                 >
                   <Star className="size-4 text-amber-400 fill-amber-400/20" />
                   <span>Avis</span>
-                  <span className="text-[11px] text-zinc-400 font-medium">
-                    (142)
-                  </span>
+                  {currentSub.reviewsCount ? (
+                    <span className="text-[11px] text-zinc-400 font-medium">({currentSub.reviewsCount})</span>
+                  ) : null}
                 </button>
               </nav>
             </div>
