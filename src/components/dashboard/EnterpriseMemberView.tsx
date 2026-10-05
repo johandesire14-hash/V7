@@ -137,9 +137,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   // Navigation inside the enterprise hub - defaults to "accueil" for company home view
   const [activeTab, setActiveTab] = useState<"accueil" | "support" | "applications" | "telegram" | "discord">("accueil");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isMobileCompanyNavOpen, setIsMobileCompanyNavOpen] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(max-width: 1023px)").matches : false
-  );
+  const [isMobileCompanyNavOpen, setIsMobileCompanyNavOpen] = useState(false);
 
   // Dynamic access state based on user's active apps & subscriptions
   const [currentIncludedApps, setCurrentIncludedApps] = useState<string[]>(
@@ -202,7 +200,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     setSelectedProductDetailOffer(null);
     setPreviewMode("admin");
     setIsPreviewMenuOpen(false);
-    setIsMobileCompanyNavOpen(typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches);
+    setIsMobileCompanyNavOpen(false);
     setIsPostComposerOpen(false);
     setSelectedMemberProductId(subscription.productId || null);
   }, [companyId, subscription.productId]);
@@ -2064,7 +2062,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   {/* Boutons mobiles */}
                   <div className="lg:hidden flex items-center gap-1.5">
                     <button
-                      onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                      onClick={() => { setIsMobileSidebarOpen(true); setIsMobileCompanyNavOpen(false); }}
                       className="p-2 rounded-xl bg-white/[0.05] border border-white/10 text-white min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
                       title="Menu entreprise"
                     >
@@ -2271,7 +2269,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   <div className="absolute top-3 left-3 right-48 z-20 flex items-center justify-between lg:hidden pointer-events-auto">
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                    onClick={() => { setIsMobileSidebarOpen(true); setIsMobileCompanyNavOpen(false); }}
                     className="p-2 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white flex items-center gap-1.5 shadow-lg min-h-[40px] min-w-[40px] justify-center cursor-pointer active:scale-95 transition-all"
                     title="Ouvrir le menu de l'entreprise"
                   >
