@@ -2414,52 +2414,34 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   </h1>
                 </div>
 
-                {/* Une ligne de métadonnées indiquant la localisation et le créateur */}
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs sm:text-sm text-zinc-400">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="size-3.5 text-zinc-500 shrink-0" />
-                    <span>Paris, France</span>
-                  </div>
-                  <span className="text-zinc-700 hidden sm:inline">•</span>
-                  <div className="flex items-center gap-1.5">
-                    <User className="size-3.5 text-zinc-500 shrink-0" />
-                    <span>
-                      Créé par <strong className="text-zinc-200 font-semibold">{subscription.companyName} Labs</strong>
-                    </span>
-                  </div>
-                  <span className="text-zinc-700 hidden sm:inline">•</span>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="size-3.5 text-zinc-500 shrink-0" />
-                    <span>Membre depuis {subscription.subscribedAt || "Septembre 2026"}</span>
-                  </div>
-                </div>
+                {currentSub.description && (
+                  <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">{currentSub.description}</p>
+                )}
 
-                {/* Un compteur de membres accompagné des avatars circulaires superposés des derniers inscrits */}
-                <div className="flex items-center gap-3 pt-1">
-                  <div className="flex -space-x-2 overflow-hidden shrink-0">
-                    {[
-                      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
-                      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80",
-                      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
-                      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80",
-                      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80",
-                    ].map((avatarUrl, idx) => (
-                      <img
-                        key={idx}
-                        src={avatarUrl}
-                        alt="Membre inscrit"
-                        className="inline-block size-7 sm:size-8 rounded-full ring-2 ring-[#0a0b0d] object-cover"
-                      />
-                    ))}
+                {/* Métadonnées uniquement lorsqu’elles existent réellement. */}
+                {(currentSub.creatorName || currentSub.subscribedAt) && (
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs sm:text-sm text-zinc-400">
+                    {currentSub.creatorName && (
+                      <div className="flex items-center gap-1.5">
+                        <User className="size-3.5 text-zinc-500 shrink-0" />
+                        <span>Créé par <strong className="font-semibold text-zinc-200">{currentSub.creatorName}</strong></span>
+                      </div>
+                    )}
+                    {currentSub.subscribedAt && (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="size-3.5 text-zinc-500 shrink-0" />
+                        <span>Membre depuis {currentSub.subscribedAt}</span>
+                      </div>
+                    )}
                   </div>
+                )}
 
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="text-emerald-400 text-xs font-mono font-medium flex items-center gap-1.5 ml-1">
-                      <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>{subscription.onlineMembersCount ?? 0} en ligne</span>
-                    </span>
+                {currentSub.subscribersCount && (
+                  <div className="flex items-center gap-2 pt-1 text-xs sm:text-sm text-zinc-300">
+                    <Users className="size-4 text-zinc-500" />
+                    <span>{currentSub.subscribersCount}</span>
                   </div>
-                </div>
+                )}
 
                 {/* Preview vs Joined Notice Banner */}
                 {subscription.isCommunityPreview && !subscription.hasJoined ? (
@@ -3023,85 +3005,24 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
 
               {/* VUE CONTENU : ONGLET AVIS */}
               {companyTab === "avis" && (
-                <div className="space-y-6 animate-in fade-in duration-150 max-w-4xl">
-                  {/* Rating summary */}
-                  <div className="rounded-2xl border border-white/[0.08] bg-[#111318] p-6 flex flex-col sm:flex-row items-center gap-6">
-                    <div className="text-center sm:text-left space-y-1">
-                      <div className="text-4xl font-extrabold text-white tracking-tight flex items-center justify-center sm:justify-start gap-2">
-                        <span>4.9</span>
-                        <Star className="size-6 text-amber-400 fill-amber-400" />
-                      </div>
-                      <p className="text-xs text-zinc-400">Basé sur 142 avis vérifiés de membres</p>
-                    </div>
-                    <div className="flex-1 w-full space-y-1.5 border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-6">
-                      <div className="flex items-center gap-3 text-xs text-zinc-400">
-                        <span className="w-12">5 étoiles</span>
-                        <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
-                          <div className="w-[92%] h-full bg-amber-400 rounded-full" />
+                <div className="max-w-4xl space-y-6 animate-in fade-in duration-150">
+                  {currentSub.rating !== undefined && (currentSub.reviewsCount || 0) > 0 ? (
+                    <div className="rounded-2xl border border-white/[0.08] bg-[#111318] p-6 flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
+                      <div className="space-y-1 text-center sm:text-left">
+                        <div className="flex items-center justify-center gap-2 text-4xl font-extrabold tracking-tight text-white sm:justify-start">
+                          <span>{currentSub.rating.toFixed(1)}</span>
+                          <Star className="size-6 fill-amber-400 text-amber-400" />
                         </div>
-                        <span className="w-8 text-right font-mono">92%</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-zinc-400">
-                        <span className="w-12">4 étoiles</span>
-                        <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
-                          <div className="w-[6%] h-full bg-amber-400/80 rounded-full" />
-                        </div>
-                        <span className="w-8 text-right font-mono">6%</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-zinc-400">
-                        <span className="w-12">3 étoiles</span>
-                        <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
-                          <div className="w-[2%] h-full bg-amber-400/50 rounded-full" />
-                        </div>
-                        <span className="w-8 text-right font-mono">2%</span>
+                        <p className="text-xs text-zinc-400">Basé sur {currentSub.reviewsCount} avis vérifiés</p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Individual reviews list */}
-                  <div className="space-y-4">
-                    {[
-                      {
-                        name: "Marc K.",
-                        date: "Il y a 3 jours",
-                        rating: 5,
-                        text: "Qualité exceptionnelle des analyses et rigueur impressionnante sur la gestion de risque. Les alertes Telegram arrivent avec une réactivité parfaite.",
-                        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80",
-                      },
-                      {
-                        name: "Sarah T.",
-                        date: "Il y a 1 semaine",
-                        rating: 5,
-                        text: "L'interface d'accueil est super propre et la liaison avec le bot Discord s'est faite en un clic. Excellent support réactif.",
-                        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
-                      },
-                      {
-                        name: "Ibrahim D.",
-                        date: "Il y a 2 semaines",
-                        rating: 5,
-                        text: "Très bon accompagnement. Les synthèses hebdomadaires et les fiches PDF sont claires et directement exploitables.",
-                        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80",
-                      },
-                    ].map((rev, i) => (
-                      <div key={i} className="p-5 rounded-2xl border border-white/[0.08] bg-[#111318] space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <img src={rev.avatar} alt={rev.name} className="size-8 rounded-full object-cover" />
-                            <div>
-                              <div className="text-xs font-bold text-white">{rev.name}</div>
-                              <div className="text-[10px] text-zinc-500">{rev.date}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-0.5">
-                            {Array.from({ length: rev.rating }).map((_, starIdx) => (
-                              <Star key={starIdx} className="size-3.5 text-amber-400 fill-amber-400" />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-xs text-zinc-300 leading-relaxed">{rev.text}</p>
-                      </div>
-                    ))}
-                  </div>
+                  ) : (
+                    <div className="rounded-2xl border border-white/[0.08] bg-[#111318] p-8 text-center">
+                      <Star className="mx-auto size-8 text-zinc-600" />
+                      <p className="mt-3 text-sm font-semibold text-white">Aucun avis pour le moment</p>
+                      <p className="mt-1 text-xs text-zinc-400">Les avis réels des membres apparaîtront ici.</p>
+                    </div>
+                  )}
                 </div>
               )}
 
