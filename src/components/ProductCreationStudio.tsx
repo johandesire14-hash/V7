@@ -1928,7 +1928,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                 <div className={viewMode === "mobile" ? "order-4 space-y-5" : "lg:col-span-7 space-y-6"}>
                   
                   {/* Hero Media Showcase */}
-                  <div className="relative rounded-2xl border border-white/10 bg-[#151720] overflow-hidden group">
+                  <div className={viewMode === "mobile" ? "hidden" : "relative rounded-2xl border border-white/10 bg-[#151720] overflow-hidden group"}>
                     <input
                       ref={productImageFileInputRef}
                       type="file"
