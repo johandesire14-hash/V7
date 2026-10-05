@@ -1925,7 +1925,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
               <div className={`grid ${viewMode === "mobile" ? "grid-cols-1 gap-5 p-4" : "grid-cols-1 lg:grid-cols-12 gap-8 p-6 sm:p-8"}`}>
                 
                 {/* LEFT MAIN CONTENT (8 COLS) */}
-                <div className={viewMode === "mobile" ? "space-y-5" : "lg:col-span-7 space-y-6"}>
+                <div className={viewMode === "mobile" ? "order-4 space-y-5" : "lg:col-span-7 space-y-6"}>
                   
                   {/* Hero Media Showcase */}
                   <div className="relative rounded-2xl border border-white/10 bg-[#151720] overflow-hidden group">
@@ -2031,71 +2031,8 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                     </div>
                   )}
 
-                  {/* Uploaded Files Section (for E-books and digital items) */}
-                  {digitalFiles.length > 0 &&
-                    (selectedApps.includes("Fichiers") ||
-                      selectedApps.includes("Fichiers & Documents") ||
-                      selectedApps.includes("Téléchargement instantané") ||
-                      productType === "ebook" ||
-                      productType === "digital") && (
-                    <div className="p-5 rounded-2xl bg-[#14161f] border border-white/10 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Download className="size-4 text-[#00D26A]" />
-                          <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                            Documents et Fichiers à Télécharger
-                          </h3>
-                        </div>
-                        <span className="text-[10px] font-mono text-[#00D26A] bg-[#00D26A]/10 px-2 py-0.5 rounded">
-                          {digitalFiles.length} fichier(s) prêt(s)
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        {digitalFiles.map((file) => {
-                          const isAudioFile = file.isAudio || /\.(mp3|wav|ogg|flac|m4a)$/i.test(file.name);
-                          return (
-                            <div
-                              key={file.id}
-                              className="p-3 rounded-xl bg-[#1a1d27] border border-white/5 text-xs space-y-2.5"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2.5">
-                                  {isAudioFile ? (
-                                    <div className="size-7 rounded-lg bg-[#00D26A]/10 text-[#00D26A] flex items-center justify-center border border-[#00D26A]/20">
-                                      <Music className="size-3.5" />
-                                    </div>
-                                  ) : (
-                                    <FileCheck className="size-4 text-[#00D26A]" />
-                                  )}
-                                  <div>
-                                    <span className="font-bold text-white block">{file.name}</span>
-                                    <span className="text-[10px] text-zinc-400 font-mono">
-                                      {file.size} {isAudioFile ? "· Écoute 30s disponible" : "· Accès sécurisé"}
-                                    </span>
-                                  </div>
-                                </div>
-                                <span className="text-[11px] font-bold text-[#00D26A]">
-                                  {isAudioFile ? "Extrait 30s" : "Téléchargement instantané"}
-                                </span>
-                              </div>
-                              {isAudioFile && (
-                                <AudioPreview30sPlayer
-                                  title={file.name}
-                                  artist={storeName || "Créateur"}
-                                  variant="full"
-                                  maxSeconds={file.audioPreviewSeconds || 30}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Full Product Description */}
-                  <div className="space-y-3">
+                  <div className="hidden space-y-3 sm:block">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">
                       À propos de cette offre
                     </h3>
@@ -2105,7 +2042,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                   </div>
 
                   {/* FAQ Accordion */}
-                  <div className="space-y-3">
+                  <div className="hidden space-y-3 sm:block">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">
                       Questions fréquemment posées
                     </h3>
@@ -2138,7 +2075,7 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                 </div>
 
                 {/* RIGHT STICKY SIDEBAR (5 COLS) - CHECKOUT & PRICING CARD */}
-                <div className={viewMode === "mobile" ? "space-y-5" : "lg:col-span-5 space-y-5"}>
+                <div className={viewMode === "mobile" ? "order-1 space-y-5" : "lg:col-span-5 space-y-5"}>
                   <div className={`${viewMode === "mobile" ? "" : "sticky top-4"} rounded-3xl border border-white/15 bg-[#14161f] ${viewMode === "mobile" ? "p-4" : "p-6"} shadow-2xl space-y-5`}>
                     
                     <div className="space-y-2.5">
@@ -2253,6 +2190,44 @@ export const ProductCreationStudio: React.FC<ProductCreationStudioProps> = ({
                       </div>
                     </div>
 
+                  </div>
+                </div>
+
+                {/* Sur mobile, la description et la FAQ suivent directement le CTA. */}
+                <div className="order-3 space-y-5 sm:hidden">
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                      À propos de cette offre
+                    </h3>
+                    <div className="rounded-2xl border border-white/10 bg-[#14161f] p-5 text-xs font-light leading-relaxed text-zinc-300 whitespace-pre-wrap">
+                      {productDescription || "Description détaillée de l'offre."}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                      Questions fréquemment posées
+                    </h3>
+                    <div className="space-y-2">
+                      {faqs.map((faq) => {
+                        const isExpanded = expandedFaqId === faq.id;
+                        return (
+                          <div key={`mobile-${faq.id}`} className="space-y-2 rounded-2xl border border-white/10 bg-[#14161f] p-4 transition-all">
+                            <div
+                              onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
+                              className="flex cursor-pointer items-center justify-between text-xs font-bold text-white"
+                            >
+                              <span>{faq.q}</span>
+                              <span className="font-bold text-[#00D26A]">{isExpanded ? "−" : "+"}</span>
+                            </div>
+                            {isExpanded && (
+                              <p className="border-t border-white/5 pt-2 text-xs font-light leading-relaxed text-zinc-400">
+                                {faq.a}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 

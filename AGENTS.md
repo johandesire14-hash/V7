@@ -12,6 +12,8 @@ Ces règles s'appliquent à TOUTE modification de l'interface, par n'importe que
 
 4. **Sobriété par défaut.** Si un élément visuel peut être retiré sans perdre d'information fonctionnelle, ne l'ajoute pas. Préfère toujours l'option la plus minimale entre deux façons d'afficher la même chose.
 
+5. **Aucune section « Fichiers éventuels ».** Ne crée jamais de bloc générique ou optionnel « Fichiers éventuels » dans les previews ou les interfaces produit. Les fichiers ne peuvent apparaître que comme une fonctionnalité explicitement configurée pour un produit, jamais comme un élément par défaut.
+
 ## Suppression = suppression réelle
 
 Quand on demande de retirer un élément de l'interface :
