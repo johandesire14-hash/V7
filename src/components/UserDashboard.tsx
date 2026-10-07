@@ -922,7 +922,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     <div className="mansa-viewport mansa-safe-bottom flex h-screen w-full flex-col bg-[#0f1012] text-[#eeeeee] font-sans antialiased overflow-hidden selection:bg-[#FA4616]/30 selection:text-[#FA4616]">
       
       {/* 1. TOP HEADER BAR (Fully Responsive) */}
-      <header className="flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.07] bg-[#0c0d0e] px-2.5 sm:px-6 gap-2 select-none">
+      <header className={`${isMemberWorkspace || activeNav === "communaute" ? "hidden lg:flex" : "flex"} h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.07] bg-[#0c0d0e] px-2.5 sm:px-6 gap-2 select-none`}>
         
         {/* Left: Mobile hamburger drawer trigger + afhub Logo */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
