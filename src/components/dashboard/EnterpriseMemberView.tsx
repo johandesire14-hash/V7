@@ -2221,6 +2221,20 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               /* EN-TÊTE STANDARD (AVEC GRANDE BANNIÈRE VISUELLE)             */
               /* ============================================================ */
               <>
+                <div className="flex lg:hidden items-center gap-3 border-b border-white/[0.08] bg-[#0a0b0d] px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileCompanyNavOpen(true);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    className="flex size-9 items-center justify-center rounded-xl text-zinc-300 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-label="Retour à la navigation de l’entreprise"
+                  >
+                    <ChevronLeft className="size-5" />
+                  </button>
+                  <h1 className="text-base font-semibold text-white">Accueil</h1>
+                </div>
                 <div className="relative w-full h-44 sm:h-64 md:h-72 lg:h-80 overflow-hidden bg-[#111216] select-none group">
                   <img
                     src={currentSub.companyBanner || ""}
@@ -2245,30 +2259,6 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                     )}
                   </div>
 
-                  {/* Mobile / Tablet Top Navigation Bar over Banner */}
-                  <div className="absolute top-3 left-3 right-48 z-20 flex items-center justify-between lg:hidden pointer-events-auto">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
-                    className="p-2 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white flex items-center gap-1.5 shadow-lg min-h-[40px] min-w-[40px] justify-center cursor-pointer active:scale-95 transition-all"
-                    title="Ouvrir le menu de l'entreprise"
-                  >
-                    <Menu className="size-4" />
-                    <span className="text-xs font-semibold pr-1">Menu</span>
-                  </button>
-                  {onBackToPersonal && (
-                    <button
-                      onClick={onBackToPersonal}
-                      className="px-2.5 py-2 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-zinc-300 hover:text-white flex items-center gap-1 text-xs font-medium shadow-lg min-h-[40px] cursor-pointer active:scale-95 transition-all"
-                      title="Retour à mon espace"
-                    >
-                      <ChevronLeft className="size-3.5" />
-                      <span className="hidden sm:inline">Mon Espace</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-              
               {/* Toast for profile link sharing */}
               {copiedProfileShare && (
                 <div className="absolute top-14 right-3 z-20 px-3.5 py-2 rounded-xl bg-[#14151a] border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2 shadow-xl animate-in fade-in slide-in-from-top-2">
