@@ -737,20 +737,25 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     );
   }, [enterpriseOffers]);
 
-  const mobileConfiguredApps = React.useMemo(() => {
-    const hasApp = (keywords: string[]) => enterpriseOffers.some((offer) =>
-      offer.includedApps?.some((app) => keywords.some((keyword) => app.toLowerCase().includes(keyword))) ||
-      keywords.some((keyword) => offer.title.toLowerCase().includes(keyword))
-    );
-    const apps: Array<"telegram" | "discord" | "files" | "courses"> = [];
-    if (hasTelegramApp) apps.push("telegram");
-    if (hasDiscordApp) apps.push("discord");
-    if (hasApp(["fichier", "file", "ebook", "template"]) || enterpriseOffers.some((offer) => (offer.digitalFiles?.length || offer.ebooks?.length || 0) > 0)) apps.push("files");
-    if (hasApp(["cours", "course", "formation", "masterclass"]) || enterpriseOffers.some((offer) => (offer.courses?.length || offer.courseModules?.length || 0) > 0)) apps.push("courses");
+  const configuredCompanyApps = React.useMemo(() => {
+    const appNames = [
+      ...currentIncludedApps,
+      ...(currentSub.includedApps || []),
+      ...enterpriseOffers.flatMap((offer) => offer.includedApps || []),
+      ...enterpriseOffers.map((offer) => offer.title),
+    ].map((value) => value.toLowerCase());
+    const hasAny = (keywords: string[]) => appNames.some((value) => keywords.some((keyword) => value.includes(keyword)));
+    const apps: Array<"telegram" | "discord" | "files" | "courses" | "chat" | "content"> = [];
+    if (hasTelegramApp || hasAny(["telegram"])) apps.push("telegram");
+    if (hasDiscordApp || hasAny(["discord"])) apps.push("discord");
+    if (hasAny(["fichier", "file", "ebook", "template"]) || enterpriseOffers.some((offer) => (offer.digitalFiles?.length || offer.ebooks?.length || 0) > 0)) apps.push("files");
+    if (hasAny(["cours", "course", "formation", "masterclass"]) || enterpriseOffers.some((offer) => (offer.courses?.length || offer.courseModules?.length || 0) > 0)) apps.push("courses");
+    if (hasAny(["chat", "messagerie", "message"])) apps.push("chat");
+    if (hasAny(["content", "contenu"])) apps.push("content");
     return apps;
-  }, [enterpriseOffers, hasTelegramApp, hasDiscordApp]);
+  }, [currentIncludedApps, currentSub.includedApps, enterpriseOffers, hasTelegramApp, hasDiscordApp]);
 
-  const openMobileConfiguredApp = (app: "telegram" | "discord" | "files" | "courses") => {
+  const openMobileConfiguredApp = (app: "telegram" | "discord" | "files" | "courses" | "chat" | "content") => {
     setIsMobileCompanyNavOpen(false);
     if (app === "telegram") {
       setActiveTab("telegram");
@@ -760,6 +765,15 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
     if (app === "discord") {
       setActiveTab("discord");
       setDiscordFlowStep("channels_list");
+      return;
+    }
+    if (app === "chat") {
+      setActiveTab("support");
+      return;
+    }
+    if (app === "content") {
+      setActiveTab("accueil");
+      setCompanyTab("accueil");
       return;
     }
     const keywords = app === "courses" ? ["cours", "course", "formation", "masterclass"] : ["fichier", "file", "ebook", "template"];
@@ -1747,53 +1761,22 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             </button>
           )}
 
-          {/* Telegram : UNIQUEMENT si au moins un produit lié existe */}
-          {hasTelegramApp && (
-            <button
-              onClick={() => {
-                setActiveTab("telegram");
-                if (isMobile) setIsMobileCompanyNavOpen(false);
-                if (isMobile) setIsMobileSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
-                activeTab === "telegram"
-                  ? "bg-[#181a20] text-white font-semibold border border-white/10 shadow-sm"
-                  : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-              }`}
-            >
-              <TelegramIcon className="size-4" />
-              <span className={activeTab === "telegram" ? "text-white font-bold" : "text-zinc-300"}>Telegram</span>
-            </button>
-          )}
-
-          {/* Discord : UNIQUEMENT si au moins un produit lié existe */}
-          {hasDiscordApp && (
-            <button
-              onClick={() => {
-                setActiveTab("discord");
-                if (isMobile) setIsMobileCompanyNavOpen(false);
-                if (isMobile) setIsMobileSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
-                activeTab === "discord"
-                  ? "bg-[#181a20] text-white font-semibold border border-white/10 shadow-sm"
-                  : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-              }`}
-            >
-              <DiscordIcon className="size-4" />
-              <span className={activeTab === "discord" ? "text-white font-bold" : "text-zinc-300"}>Discord</span>
-            </button>
-          )}
-          {isMobile && mobileConfiguredApps.filter((app) => app !== "telegram" && app !== "discord").map((app) => (
-            <button
-              key={`mobile-app-${app}`}
-              onClick={() => openMobileConfiguredApp(app)}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-            >
-              {app === "courses" ? <GraduationCap className="size-4 text-indigo-400" /> : <FileText className="size-4 text-blue-400" />}
-              <span>{app === "courses" ? "Courses" : "Fichiers"}</span>
-            </button>
-          ))}
+          {/* Applications réellement configurées : aucune entrée par défaut, aucun doublon. */}
+          {configuredCompanyApps.map((app) => {
+            const appLabel = app === "telegram" ? "Telegram" : app === "discord" ? "Discord" : app === "files" ? "Fichiers" : app === "courses" ? "Courses" : app === "chat" ? "Chat" : "Content";
+            const appIcon = app === "telegram" ? <TelegramIcon className="size-4" /> : app === "discord" ? <DiscordIcon className="size-4" /> : app === "courses" ? <GraduationCap className="size-4 text-indigo-400" /> : app === "files" ? <FileText className="size-4 text-blue-400" /> : <MessageSquare className="size-4 text-orange-400" />;
+            const isActive = (app === "telegram" && activeTab === "telegram") || (app === "discord" && activeTab === "discord") || (app === "chat" && activeTab === "support");
+            return (
+              <button
+                key={`configured-app-${app}`}
+                onClick={() => openMobileConfiguredApp(app)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${isActive ? "bg-[#181a20] text-white font-semibold border border-white/10" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"}`}
+              >
+                {appIcon}
+                <span>{appLabel}</span>
+              </button>
+            );
+          })}
         </nav>
 
         {isMobile && onBackToPersonal && (
