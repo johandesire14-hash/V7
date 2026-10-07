@@ -1701,8 +1701,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             onClick={() => {
               setActiveTab("accueil");
               setCompanyTab("accueil");
-              if (isMobile) setIsMobileCompanyNavOpen(false);
-              if (isMobile) setIsMobileSidebarOpen(false);
+              if (isMobile || isCompact) setIsMobileCompanyNavOpen(false);
+              if (isMobile || isCompact) setIsMobileSidebarOpen(false);
             }}
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
               activeTab === "accueil" && companyTab === "accueil"
