@@ -720,29 +720,24 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
 
   // Telegram et Discord sont des apps : elles ne doivent être présentes que si au moins un produit existe pour cette entreprise et inclut l'application
   const hasTelegramApp = React.useMemo(() => {
-    if (enterpriseOffers.length === 0) return false;
-    return enterpriseOffers.some(
-      (offer) =>
-        offer.includedApps?.some((a) => a.toLowerCase().includes("telegram")) ||
-        offer.title.toLowerCase().includes("telegram")
+    const configuredApps = [...currentIncludedApps, ...(currentSub.includedApps || [])];
+    return configuredApps.some((app) => app.toLowerCase().includes("telegram")) || enterpriseOffers.some((offer) =>
+      offer.includedApps?.some((a) => a.toLowerCase().includes("telegram"))
     );
-  }, [enterpriseOffers]);
+  }, [currentIncludedApps, currentSub.includedApps, enterpriseOffers]);
 
   const hasDiscordApp = React.useMemo(() => {
-    if (enterpriseOffers.length === 0) return false;
-    return enterpriseOffers.some(
-      (offer) =>
-        offer.includedApps?.some((a) => a.toLowerCase().includes("discord")) ||
-        offer.title.toLowerCase().includes("discord")
+    const configuredApps = [...currentIncludedApps, ...(currentSub.includedApps || [])];
+    return configuredApps.some((app) => app.toLowerCase().includes("discord")) || enterpriseOffers.some((offer) =>
+      offer.includedApps?.some((a) => a.toLowerCase().includes("discord"))
     );
-  }, [enterpriseOffers]);
+  }, [currentIncludedApps, currentSub.includedApps, enterpriseOffers]);
 
   const configuredCompanyApps = React.useMemo(() => {
     const appNames = [
       ...currentIncludedApps,
       ...(currentSub.includedApps || []),
       ...enterpriseOffers.flatMap((offer) => offer.includedApps || []),
-      ...enterpriseOffers.map((offer) => offer.title),
     ].map((value) => value.toLowerCase());
     const hasAny = (keywords: string[]) => appNames.some((value) => keywords.some((keyword) => value.includes(keyword)));
     const apps: Array<"telegram" | "discord" | "files" | "courses" | "chat" | "content"> = [];
@@ -1823,7 +1818,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   return (
     <div className="mansa-viewport mansa-safe-bottom flex h-full w-full flex-1 overflow-hidden relative select-none bg-[#08090b] text-[#eeeeee] font-sans antialiased">
       {/* 1. LEFTMOST RAIL: Enterprise Squares ("les cases entreprise sur le cote comme sur l'image") */}
-      <div className="hidden lg:flex w-[72px] shrink-0 bg-[#08090a] border-r border-white/5 flex-col items-center py-3 gap-2 overflow-y-auto no-scrollbar select-none z-10">
+      <div className="flex w-[72px] shrink-0 bg-[#08090a] border-r border-white/5 flex-col items-center py-3 gap-2 overflow-y-auto no-scrollbar select-none z-10">
           
           {/* 1. Return to Personal Workspace */}
           {onBackToPersonal && (
