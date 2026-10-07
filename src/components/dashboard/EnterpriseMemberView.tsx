@@ -1660,7 +1660,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                           setExpandedProductFaqIndex(null);
                         }
                         setIsPreviewMenuOpen(false);
-                        if (isMobile) setIsMobileCompanyNavOpen(false);
+                        if (isMobile || isCompact) setIsMobileCompanyNavOpen(false);
                         if (isMobile) setIsMobileSidebarOpen(false);
                       }}
                       className={`w-full flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${selectedMemberProductId === offer.id ? "bg-white/10 text-white" : "text-zinc-300 hover:bg-white/5 hover:text-white"}`}
@@ -1726,7 +1726,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
               } else {
                 setActiveTab("support");
               }
-              if (isMobile) setIsMobileSidebarOpen(false);
+              if (isMobile || isCompact) setIsMobileCompanyNavOpen(false);
+              if (isMobile || isCompact) setIsMobileSidebarOpen(false);
             }}
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
               activeTab === "support"
@@ -1747,7 +1748,8 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                 } else {
                   setActiveTab("applications");
                 }
-                if (isMobile) setIsMobileSidebarOpen(false);
+                if (isMobile || isCompact) setIsMobileCompanyNavOpen(false);
+                if (isMobile || isCompact) setIsMobileSidebarOpen(false);
               }}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer min-h-[44px] ${
                 activeTab === "applications"
@@ -3012,11 +3014,12 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2.5">
                 <button
-                  onClick={() => setIsMobileSidebarOpen(true)}
+                  onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                   className="lg:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center"
-                  title="Ouvrir le menu"
+                  title="Retour à la navigation de l’entreprise"
+                  aria-label="Retour à la navigation de l’entreprise"
                 >
-                  <Menu className="size-4" />
+                  <ChevronLeft className="size-4" />
                 </button>
                 <div>
                   <h1 className="text-base sm:text-lg font-bold text-white">Assistance {subscription.companyName}</h1>
@@ -3078,11 +3081,12 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             {/* Top header on mobile for opening sidebar if on small screen */}
             <div className="lg:hidden w-full h-12 px-3 border-b border-white/[0.08] bg-[#0c0d11] flex items-center justify-between shrink-0 select-none">
               <button
-                onClick={() => setIsMobileSidebarOpen(true)}
+                onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
-                title="Ouvrir le menu"
+                title="Retour à la navigation de l’entreprise"
+                aria-label="Retour à la navigation de l’entreprise"
               >
-                <Menu className="size-4" />
+                <ChevronLeft className="size-4" />
               </button>
               <div className="flex items-center gap-2">
                 <TelegramIcon className="size-4" />
@@ -3134,11 +3138,12 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             {/* Top header on mobile for opening sidebar if on small screen */}
             <div className="lg:hidden w-full h-12 px-3 border-b border-white/[0.08] bg-[#0c0d11] flex items-center justify-between shrink-0 select-none">
               <button
-                onClick={() => setIsMobileSidebarOpen(true)}
+                onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
-                title="Ouvrir le menu"
+                title="Retour à la navigation de l’entreprise"
+                aria-label="Retour à la navigation de l’entreprise"
               >
-                <Menu className="size-4" />
+                <ChevronLeft className="size-4" />
               </button>
               <div className="flex items-center gap-2">
                 <Plus className="size-4 text-blue-400" />
@@ -3192,11 +3197,12 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             {/* Top header on mobile for opening sidebar if on small screen */}
             <div className="lg:hidden w-full h-12 px-3 border-b border-white/[0.08] bg-[#0c0d11] flex items-center justify-between shrink-0 select-none">
               <button
-                onClick={() => setIsMobileSidebarOpen(true)}
+                onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
-                title="Ouvrir le menu"
+                title="Retour à la navigation de l’entreprise"
+                aria-label="Retour à la navigation de l’entreprise"
               >
-                <Menu className="size-4" />
+                <ChevronLeft className="size-4" />
               </button>
               <div className="flex items-center gap-2">
                 <DiscordIcon className="size-4" />
