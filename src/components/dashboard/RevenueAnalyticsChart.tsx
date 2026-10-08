@@ -800,10 +800,10 @@ export const RevenueAnalyticsChart: React.FC<RevenueAnalyticsChartProps> = ({
 
       {/* Chart Style Switcher Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#16181e] p-1 text-xs overflow-x-auto no-scrollbar max-w-full">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1.5 rounded-xl border border-white/10 bg-[#16181e] p-1 text-xs">
           <button
             onClick={() => setChartType("area")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
               chartType === "area"
                 ? "bg-[#252932] text-white font-bold"
                 : "text-zinc-400 hover:text-zinc-200"
@@ -815,7 +815,7 @@ export const RevenueAnalyticsChart: React.FC<RevenueAnalyticsChartProps> = ({
 
           <button
             onClick={() => setChartType("breakdown")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
               chartType === "breakdown"
                 ? "bg-[#252932] text-white font-bold"
                 : "text-zinc-400 hover:text-zinc-200"
@@ -827,7 +827,7 @@ export const RevenueAnalyticsChart: React.FC<RevenueAnalyticsChartProps> = ({
 
           <button
             onClick={() => setChartType("sales")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
               chartType === "sales"
                 ? "bg-[#252932] text-white font-bold"
                 : "text-zinc-400 hover:text-zinc-200"
@@ -839,7 +839,7 @@ export const RevenueAnalyticsChart: React.FC<RevenueAnalyticsChartProps> = ({
 
           <button
             onClick={() => setChartType("cumulative")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
               chartType === "cumulative"
                 ? "bg-[#252932] text-white font-bold"
                 : "text-zinc-400 hover:text-zinc-200"
