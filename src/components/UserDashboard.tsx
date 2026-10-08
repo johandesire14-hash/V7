@@ -3011,7 +3011,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       {/* Navigation mobile globale : uniquement les espaces réellement disponibles. */}
       {!isProductStudioOpen && !isMemberCheckoutOpen && (
         <nav className="mansa-safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-[#0b0c0f]/95 px-1.5 pt-2 backdrop-blur-xl lg:hidden" aria-label="Navigation mobile">
-          <div className="mx-auto grid max-w-xl grid-cols-6 gap-0.5">
+          <div className="mx-auto grid max-w-xl grid-cols-4 gap-0.5">
             <button type="button" onClick={() => { setActiveWorkspaceId("personnel"); switchTab("accueil"); }} className={`flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition-colors ${activeNav === "accueil" && activeWorkspaceId === "personnel" ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}>
               <LayoutGrid className="size-5" />
               <span>Dashboard</span>
@@ -3020,18 +3020,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <UsersIcon className="size-5" />
               <span>Communauté</span>
             </button>
-            <button type="button" onClick={() => switchTab("messages")} className={`relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition-colors ${activeNav === "messages" ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}>
-              <MessageSquare className="size-5" />
-              {unreadMessagesCount > 0 && <span className="absolute right-2 top-1 size-4 rounded-full bg-rose-500 text-[9px] leading-4 text-white">{unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}</span>}
-              <span>Messages</span>
-            </button>
             <button type="button" onClick={() => switchTab("decouvrir")} className={`flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition-colors ${activeNav === "decouvrir" ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}>
               <Compass className="size-5" />
               <span>Découvrir</span>
-            </button>
-            <button type="button" onClick={() => { if (isMemberWorkspace || activeNav === "communaute") { setActiveWorkspaceId("personnel"); switchTab("communaute"); } else { setIsMobileSidebarOpen(true); } }} className={`flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition-colors ${activeWorkspaceId !== "personnel" && activeNav !== "communaute" ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}>
-              <Building2 className="size-5" />
-              <span>Entreprise</span>
             </button>
             <button type="button" onClick={() => { setAccountSettingsInitialTab("profil"); setIsAccountSettingsModalOpen(true); }} className="flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200">
               <div className="flex size-5 items-center justify-center rounded-full bg-[#32363e] text-[9px] text-white">{user.avatarInitials || "U"}</div>
