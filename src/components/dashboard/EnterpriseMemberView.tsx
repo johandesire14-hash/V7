@@ -2048,7 +2048,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
                   {/* Boutons mobiles */}
                   <div className="lg:hidden flex items-center gap-1.5">
                     <button
-                      onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                      onClick={() => { setActiveTab("accueil"); setCompanyTab("accueil"); setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                       className="p-2 rounded-xl bg-white/[0.05] border border-white/10 text-white min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
                       title="Menu entreprise"
                     >
@@ -3014,7 +3014,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2.5">
                 <button
-                  onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                  onClick={() => { setActiveTab("accueil"); setCompanyTab("accueil"); setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                   className="lg:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center"
                   title="Retour à la navigation de l’entreprise"
                   aria-label="Retour à la navigation de l’entreprise"
@@ -3081,7 +3081,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             {/* Top header on mobile for opening sidebar if on small screen */}
             <div className="lg:hidden w-full h-12 px-3 border-b border-white/[0.08] bg-[#0c0d11] flex items-center justify-between shrink-0 select-none">
               <button
-                onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                onClick={() => { setActiveTab("accueil"); setCompanyTab("accueil"); setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
                 title="Retour à la navigation de l’entreprise"
                 aria-label="Retour à la navigation de l’entreprise"
@@ -3138,7 +3138,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             {/* Top header on mobile for opening sidebar if on small screen */}
             <div className="lg:hidden w-full h-12 px-3 border-b border-white/[0.08] bg-[#0c0d11] flex items-center justify-between shrink-0 select-none">
               <button
-                onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                onClick={() => { setActiveTab("accueil"); setCompanyTab("accueil"); setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
                 title="Retour à la navigation de l’entreprise"
                 aria-label="Retour à la navigation de l’entreprise"
@@ -3197,7 +3197,7 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
             {/* Top header on mobile for opening sidebar if on small screen */}
             <div className="lg:hidden w-full h-12 px-3 border-b border-white/[0.08] bg-[#0c0d11] flex items-center justify-between shrink-0 select-none">
               <button
-                onClick={() => { setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
+                onClick={() => { setActiveTab("accueil"); setCompanyTab("accueil"); setIsMobileCompanyNavOpen(true); setIsMobileSidebarOpen(false); }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
                 title="Retour à la navigation de l’entreprise"
                 aria-label="Retour à la navigation de l’entreprise"
