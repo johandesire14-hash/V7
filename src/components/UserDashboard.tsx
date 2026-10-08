@@ -403,12 +403,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     switchTab("communaute");
   };
 
-  const handleOpenActiveCompanyCommunity = () => {
-    if (!activeCompany) return;
+  const handleOpenCompanyCommunity = (company: Company | null = activeCompany) => {
+    if (!company) return;
 
     const existing = memberSubscriptions.find(
       (subscription) =>
-        subscription.id === activeCompany.id || subscription.companyId === activeCompany.id
+        subscription.id === company.id || subscription.companyId === company.id
     );
     if (existing) {
       setSelectedCommunitySubId(existing.id);
@@ -417,15 +417,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       return;
     }
 
-    const companyProduct = productsList.find((product) => product.companyId === activeCompany.id);
+    const companyProduct = productsList.find((product) => product.companyId === company.id);
     const ownerCommunitySub: EnterpriseSubscription = {
-      id: `owner-community-${activeCompany.id}`,
-      companyId: activeCompany.id,
-      companyName: activeCompany.name,
-      companyInitials: activeCompany.logoInitials || activeCompany.name.slice(0, 2).toUpperCase(),
-      companyLogo: activeCompany.companyLogo,
-      companyBanner: activeCompany.companyBanner,
-      companyGradient: activeCompany.colorGradient || "from-[#12141c] to-black",
+      id: `owner-community-${company.id}`,
+      companyId: company.id,
+      companyName: company.name,
+      companyInitials: company.logoInitials || company.name.slice(0, 2).toUpperCase(),
+      companyLogo: company.companyLogo,
+      companyBanner: company.companyBanner,
+      companyGradient: company.colorGradient || "from-[#12141c] to-black",
       productName: companyProduct?.name || "Communauté de l'entreprise",
       priceDisplay: companyProduct?.priceDisplay || "Gratuit",
       status: "active",
@@ -433,7 +433,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       hasPaidOffer: false,
       hasJoined: true,
       creatorName: user.name || "Créateur Mansa",
-      description: activeCompany.description || "",
+      description: company.description || "",
       includedApps: ["dashboard", "support"],
       telegramChannels: [],
       discordChannels: [],
@@ -442,7 +442,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
     setMemberSubscriptions((previous) => [
       ownerCommunitySub,
-      ...previous.filter((subscription) => subscription.companyId !== activeCompany.id),
+      ...previous.filter((subscription) => subscription.companyId !== company.id),
     ]);
     setSelectedCommunitySubId(ownerCommunitySub.id);
     setActiveWorkspaceId("personnel");
@@ -1212,10 +1212,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               }
             }}
             creatorCompanies={companies}
-            onSelectCreatorCompany={(comp) => {
-              setActiveWorkspaceId(comp.id);
-              setActiveNav("accueil");
-            }}
+            onSelectCreatorCompany={(comp) => handleOpenCompanyCommunity(comp)}
             user={user}
             onOpenMarketplace={() => {
               setActiveWorkspaceId("personnel");
@@ -1452,7 +1449,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
                   {/* Communauté de l'entreprise active : ouvre l'espace personnel sur cette entreprise */}
                   <button
-                    onClick={handleOpenActiveCompanyCommunity}
+                    onClick={() => handleOpenCompanyCommunity()}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                   >
                     <UsersIcon className="size-4 text-[#00D26A]" />
@@ -1853,7 +1850,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       </button>
 
                       <button
-                        onClick={handleOpenActiveCompanyCommunity}
+                        onClick={() => handleOpenCompanyCommunity()}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors cursor-pointer min-h-[44px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                       >
                         <UsersIcon className="size-4 text-[#00D26A]" />
