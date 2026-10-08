@@ -417,13 +417,15 @@ export const EnterpriseMemberView: React.FC<EnterpriseMemberViewProps> = ({
   React.useEffect(() => {
     const handleBrandingChange = (e: any) => {
       const detail = e.detail;
-      if (detail && (detail.companyId === currentSub.companyId || detail.id === currentSub.companyId)) {
+      const branding = detail?.branding || detail;
+      const companyId = detail?.companyId || detail?.id || branding?.companyId;
+      if (branding && (companyId === currentSub.companyId || companyId === currentSub.id)) {
         setCurrentSub((prev) => ({
           ...prev,
-          companyName: detail.companyName || detail.name || prev.companyName,
-          companyBanner: detail.companyBanner || prev.companyBanner,
-          companyLogo: detail.companyLogo || prev.companyLogo,
-          socialLinks: detail.socialLinks || prev.socialLinks,
+          companyName: branding.companyName ?? branding.name ?? prev.companyName,
+          companyBanner: branding.companyBanner ?? prev.companyBanner,
+          companyLogo: branding.companyLogo ?? prev.companyLogo,
+          socialLinks: branding.socialLinks ?? prev.socialLinks,
         }));
       }
     };

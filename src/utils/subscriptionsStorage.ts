@@ -673,9 +673,9 @@ export function updateSubscriptionBranding(
     if (sub.id === targetId || sub.companyId === targetId) {
       return {
         ...sub,
-        companyName: branding.companyName || sub.companyName,
-        companyLogo: branding.companyLogo || sub.companyLogo,
-        companyBanner: branding.companyBanner || sub.companyBanner,
+        companyName: branding.companyName !== undefined ? branding.companyName : sub.companyName,
+        companyLogo: branding.companyLogo !== undefined ? branding.companyLogo : sub.companyLogo,
+        companyBanner: branding.companyBanner !== undefined ? branding.companyBanner : sub.companyBanner,
         socialLinks: branding.socialLinks || sub.socialLinks,
       };
     }
@@ -684,9 +684,8 @@ export function updateSubscriptionBranding(
 
   if (typeof window !== "undefined") {
     localStorage.setItem(SUBSCRIPTIONS_STORAGE_KEY_PREFIX + userKey, JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent("mansa_subscription_updated", { detail: branding }));
+    window.dispatchEvent(new CustomEvent("mansa_subscription_updated", { detail: { companyId: targetId, ...branding } }));
   }
   return updated;
 }
-
 

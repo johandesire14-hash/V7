@@ -3,7 +3,6 @@ import {
   Search,
   Compass,
   Sparkles,
-  MessageSquare,
   Bell,
   Home,
   Building2,
@@ -276,6 +275,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     const userKey = user.uid || user.email || "default";
     return getSavedCompanies(userKey);
   });
+
+  // Keep every workspace view in sync when a company logo/banner is changed.
+  useEffect(() => {
+    const handleCompaniesUpdated = () => {
+      const userKey = user.uid || user.email || "default";
+      setCompanies(getSavedCompanies(userKey));
+    };
+    window.addEventListener("mansa_companies_updated", handleCompaniesUpdated);
+    return () => window.removeEventListener("mansa_companies_updated", handleCompaniesUpdated);
+  }, [user]);
 
   // Subscribed Enterprises State (Member / Fan Experience: e.g. victory_odds, BS, GS)
   const [memberSubscriptions, setMemberSubscriptions] = useState<EnterpriseSubscription[]>(() => {
@@ -1013,14 +1022,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             <span>{lang === "fr" ? "Visite" : "Tour"}</span>
           </button>
 
-          {/* Global Currency Selector in Top Header */}
-          <CurrencySelector
-            currentCurrency={currency}
-            onSelectCurrency={setCurrency}
-            lang={lang}
-            variant="header"
-          />
-
           {/* Refresh Data with Skeleton simulator */}
           <button
             onClick={handleRefreshData}
@@ -1036,14 +1037,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             title="Explorer"
           >
             <Compass className="size-4" />
-          </button>
-
-          <button
-            onClick={() => switchTab("messages")}
-            className="relative p-1.5 text-zinc-400 hover:text-white transition-colors cursor-pointer rounded-lg hover:bg-white/5 min-h-[36px] min-w-[36px] flex items-center justify-center"
-            title="Messages"
-          >
-            <MessageSquare className="size-4" />
           </button>
 
           <button
