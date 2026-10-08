@@ -3029,7 +3029,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <Compass className="size-5" />
               <span>Découvrir</span>
             </button>
-            <button type="button" onClick={() => { if (isMemberWorkspace || activeNav === "communaute") { setActiveWorkspaceId("personnel"); switchTab("communaute"); } else { setIsMobileSidebarOpen(true); } }} className={`flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition-colors ${activeWorkspaceId !== "personnel" || activeNav === "communaute" ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}>
+            <button type="button" onClick={() => { if (isMemberWorkspace || activeNav === "communaute") { setActiveWorkspaceId("personnel"); switchTab("communaute"); } else { setIsMobileSidebarOpen(true); } }} className={`flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition-colors ${activeWorkspaceId !== "personnel" && activeNav !== "communaute" ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}>
               <Building2 className="size-5" />
               <span>Entreprise</span>
             </button>
